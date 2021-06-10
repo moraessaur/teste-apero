@@ -9,7 +9,7 @@ headline: |
 <!-- this is a subheadline -->
 Sou geneticista de formação e venho atuando com análise/ciência de dados já há alguns anos. 
 
-Comecei minha carreira trabalhando com bioinformática no meio acadêmico, especificamente com evolução molecular e inferência bayesiana, temas de meu bacharelado e mestrado conduzidos na Universidade Federal do Rio de Janeiro.
+Comecei minha carreira trabalhando com bioinformática no meio acadêmico, especificamente com [evolução molecular e inferência bayesiana](https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0028297), temas de meu bacharelado e mestrado conduzidos na Universidade Federal do Rio de Janeiro.
 
 Também trabalhei no Centro Nacional de Conservação da Flora do Brasil, no Jardim Botânico do Rio de Janeiro. Lá, além de ser analista ambiental, também fui analista de dados, usando R para automatizar processos, fazer análises estatísticas e responder perguntas em geral.
 

@@ -2,7 +2,7 @@ baseURL = "/"
 theme = "hugo-apero"
 languageCode = "en"
 title = "Site pessoal Lucas Moraes. Data Science. Biology."
-author = "Emily Cooper"
+author = "Lucas Moraes"
 copyright = "" # set to override the auto generated copyright using org info and now year
 googleAnalytics = ""
 disqusShortname = ""
@@ -29,10 +29,10 @@ enableEmoji = true
     
 [params]
   orgName = "Lucas Moraes"
-  orgLocal = "Remoto"
+  orgLocal = ""
   description = "Uma nova versão do meu site pessoal."
   favicon = "/img/icon-512.png"
-  logo = "/img/blogophonic-mark-dark.png"
+  logo = "/img/home.png"
   mainSections = ["blog", "project", "talk"]
   navallcaps = true
   # show/hide social icons in site header & footer
@@ -43,7 +43,7 @@ enableEmoji = true
   # Place image file in `static` folder and specify image name here.
   sharing_image = "/img/papillons.jpg"
   # Twitter username (without @). Used when a visitor shares your site on Twitter.
-  twitter = "apreshill"
+  twitter = "moraessaur"
   
   # use a built-in color theme
   # one of: forest / grayscale / peach / plum /
@@ -61,7 +61,7 @@ enableEmoji = true
   # serif options: Fraunces / EB Garamond / Bitter
   # sans-serif options: Commissioner / Alegreya Sans / Metropolis
   # if you import your own fonts, name them here too
-  customtextFontFamily = "Commissioner"
+  customtextFontFamily = "Metropolis"
   customheadingFontFamily = "Fraunces"
   # alternatively, leave empty and select basic font options: sans-serif or serif
   # for more http://tachyons.io/docs/typography/font-family/
@@ -105,8 +105,8 @@ enableEmoji = true
 
 [menu]
   [[menu.header]]
-    name = "Sobre mim"
-    title = "About Blogophonic"
+    name = "Mais sobre mim"
+    title = "Mais sobre mim"
     url = "/about/"
     weight = 1
   [[menu.header]]
@@ -116,22 +116,28 @@ enableEmoji = true
     weight = 2
 
 [[menu.header]]
-    name = "Teste"
+    name = "Consultoria"
     title = "Teste"
     url = "/consulting/"
     weight = 3
 
-  # Configure footer  
-  [[menu.footer]]
-    name = "License"
-    title = "License"
-    url = "/license/"
-    weight = 1
-  [[menu.footer]]
-    name = "Contact"
-    title = "Contact form"
+[[menu.header]]
+    name = "Contato"
+    title = "Teste"
     url = "/contact/"
-    weight = 2
+    weight = 4
+
+  # Configure footer  
+  #[[menu.footer]]
+  #  name = "License"
+  #  title = "License"
+  #  url = "/license/"
+  #  weight = 1
+  #[[menu.footer]]
+  #  name = "Contato"
+  #  title = "Contact form"
+  #  url = "/contact/"
+  #  weight = 2
 
 # see https://gohugo.io/about/hugo-and-gdpr/    
 [privacy]

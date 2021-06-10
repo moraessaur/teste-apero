@@ -6,7 +6,13 @@ de data science, estatística e programação na resolução de perguntas e prob
 Neste site pessoal reúno algumas informações sobre minha vida profissional, portfolio e 
 coloco meu contato à disposição.<br><br>
 
-Quer partir direto para o CV? Tá aqui!"
+[Uma versão mais canônica do meu cv pode ser acessada aqui.](https://www.lucasmoraes.org/cv/)
+"
+
+
+
+
+
 date: 2019-02-18T12:27:33-06:00
 images:
   - img/index.jpeg
