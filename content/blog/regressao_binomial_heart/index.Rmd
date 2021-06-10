@@ -1,0 +1,340 @@
+---
+title: "Regressão Logística Binomial"
+excerpt: |
+  Variáveis relacionadas ao risco de se desenvolver doenças cardíacas.
+author:
+  - name: Lucas Moraes.
+    url: https://lucasmoraes.org
+date: 12-22-2020
+categories:
+  - Regressão Logística
+  - ROC
+  - AUC
+  - Matriz de confusão
+output:
+  distill::distill_article:
+    toc: true
+    self_contained: false
+---
+
+<style>
+body {
+text-align: justify}
+</style>
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+Regressão logística usando o dataset [*Logistic regression to predict heart disease*](https://www.kaggle.com/dileep070/heart-disease-prediction-using-logistic-regression), extraído do Kaggle. 
+
+Este dataset consiste em uma tabela com uma série de variáveis de pacientes com e sem doenças cardíacas. O objetivo aqui é conferir a probabilidade de um paciente vir a desenvolver doenças cardíacas em sua próxima década de vida, com base nessas informações. 
+
+Nessa análise vou usar uma regressão logística para entender as variáveis que melhor descrevem a variável de resposta (risco de doenças cardíacas nos próximos dez anos), não incluindo nesse post analises preditivas.
+
+Para selecionar as variáveis do modelo, vou usar uma seleção em passo-a-passo ([*stepwise regression*](https://en.wikipedia.org/wiki/Stepwise_regression)). Em seguida, vou comparar a performance de meus diferentes modelos usando curvas ROC e a AUC e analisar os coeficientes do modelo escolhido. Também discuto brevemente a acurácia do modelo, a importância de seus falsos negativos e o desbalanço de classes presente no conjunto de dados.
+
+Exponho parte do código na análise, mas para ter acesso a todo código utilizado, disponibilizo ela em minhas [GitHub pages](). Essa análise também pode ser acessada em meu [Kaggle](), em inglês e numa versão mais enxuta. O código (totalmente reprodutível), também pode ser extraído do [repositório dessa análise]()!
+
+# Análise exploratória
+***
+
+O primeiro passo é sempre dar uma olhada na estrutura da tabela:
+
+```{r}
+library(tidyverse)
+library(caret)
+library(MASS)
+library(rmarkdown)
+
+glimpse( 
+df_heart <- read.csv("https://www.dropbox.com/s/t1158k6mghefmmn/framingham.csv?dl=1")
+)
+```
+Existem algumas variáveis formatadas como numéricas, que são categóricas. Estas serão convertidas para fator. São elas:
+
+* `male`: sexo do paciente
+* `education`: escolaridade do paciente
+* `currentSmoker`: se fumante no momento do estudo ou não
+* `prevalentStroke`: se o paciente já teve infarto
+* `prevalentHyp`: se o paciente é hipertenso
+* `diabetes`: diabético ou não
+* `TenYearCHD`: se o paciente está em risco de desenvolver doenças cardíacas nos próximos dez anos. Essa vai ser a variável de resposta utilizada na regressão logística.
+
+```{r}
+df_heart <- df_heart %>% 
+              mutate_at(c("male","education","currentSmoker",
+                          "prevalentStroke","prevalentHyp","diabetes",
+                          "TenYearCHD"), as.factor)
+```
+
+Em seguida vou fazer uma análise exploratória simples e rápida. Vou primeiro plotar o correlograma das variáveis contínuas:
+
+```{r}
+library(GGally)
+ggcorr(df_heart %>% dplyr::select(age,cigsPerDay,totChol,sysBP,diaBP,BMI,heartRate,glucose), 
+       label = TRUE, hjust = 0.9, layout.exp = 1)
+```
+As correlações são fracas entre as variáveis, no geral. Isso aponta, *a priori*, para a não colinearidade entre elas, com exceção da relação entre `sysBP` e `diaBP`, que parecem se correlacionar. Como nesse caso vou fazer uma seleção por passo-a-passo, essas duas variáveis provavelmente não vão ficar juntas no modelo, mas vale ficar atento.
+
+Vou agora checar a propoção de casos positivos e negativos em minha variável de resposta, essa informação está armazenada na coluna `TenYearCHD`:
+
+```{r}
+table(df_heart$TenYearCHD)
+```
+Existe uma proporção mais alta de pacientes que não desenvolveram doenças (0). Essa é uma informação que vai ser interessante de saber na hora de checar a robustez e acurácia dos modelos, embora não seja condição em uma regressão logística que essas proporções sejam parecidas, para checar a influência dos preditores.
+
+Finalmente, preciso conferir a presença de valores ausentes na amostra:
+
+```{r}
+sapply(df_heart, function(x) sum(is.na(x)))
+```
+Vou retirar todas linhas com valores ausentes, pois eles podem inviabilizar ou comprometer a qualidade dos modelos.
+
+```{r}
+df_heart <- na.omit(df_heart)
+```
+
+
+# Seleção por passo-a-passo
+***
+
+Para selecionar o melhor modelo nessa análise, vou usar um método chamado seleção por passo-a-passo (traduzido livremente do inglês *stepwise regression*). Nele, a escolha das variáveis preditivas é feita de maneira sistemática e iterativa. Além desse método, existe outros dois da mesma família, que poderiam também ser utilizados. Abaixo, descrevo como funciona cada um deles:
+
+* *Forward selection*: parte-se de um modelo sem preditores, que são acrescentados iterativamente, em ordem de contribuição, até que a melhoria do modelo não seja mais significante.
+* *Backward selection*: parte-se de um modelo com todos preditores, que são eliminados iterativamente, começando pelos menos significantes, até que o modelo tenha todos preditores relevantes para a regressão.
+* *Stepwise selection*: combina as duas abordagens acima. Partindo de um modelo sem preditores, adiciona-se os que mais contribuem para o modelo. Em seguida, são eliminadas variáveis que não contribuem para o modelo, após a consolidação do modelo por adição.
+
+Aqui, como já dito, optei pela seleção por passo-a-passo. Para isso, vou usar o pacote `MASS`, que contém a função `stepAIC`. Nessa função, faço uso do argumento `direction` para definir o tipo de seleção que vou usar. Para usar a seleção escolhida, preciso partir de um modelo completo, que vou chamar de `full.model`:
+
+```{r, echo = TRUE}
+(
+full.model <- glm(TenYearCHD ~ ., family = "binomial", data=df_heart)
+)
+```
+Em seguida, uso a função `stepAIC`, definindo o argumento `direction` para `both`, chamando o modelo resultante de `step.model`:
+
+```{r, echo = TRUE}
+library(MASS)
+( 
+step.model <- stepAIC(full.model, direction = "both", 
+                      trace = FALSE)
+)
+```
+
+O valor de AIC do modelo otimizado diminuiu, assim como uma série de variáveis foram retiradas. Especificamente, as variáveis abaixo:
+
+```{r}
+setdiff(names(full.model$coefficients),names(step.model$coefficients))
+```
+
+Um ponto interessante de reparar é que `diaBP` foi eliminada em detrimento de `sysBP`, que foi mantida. Essas eram as variáveis que apresentavam aparente colinearidade. O número de cigarros que um paciente fuma parece contribuir mais que apenas a informação se ele fuma ou não, dado que a variável `currentSmoker` foi eliminada do modelo. Vou agora criar um modelo usando **apenas** as variáveis que foram **eliminadas**, chamando este de `bad.model`:
+
+
+```{r, echo = TRUE}
+(
+bad.model <- glm(TenYearCHD ~ education + currentSmoker + BPMeds + diabetes + diaBP + BMI + heartRate, 
+                 family = "binomial", data=df_heart)
+)
+```
+
+Conforme o esperado, o AIC dessse modelo foi mais alto que os demais. Vou utilizar esse modelo de maneira comparativa, para apontar diferenças na robustez dele em relação aos demais (full e step).
+
+Ainda, é sempre bom checar a diferença entre o desvio nulo (referente ao modelo nulo) e o desvio residual, referente ao modelo: em geral, quanto maior essa diferença, melhor. O modelo contendo apenas as variáveis eliminadas tem a menor diferença dentre os três.
+
+Para simplificar, vou chamar os três modelos que vou comparar de **`step`** (modelo gerado pela seleção por passo-a-passo), **`full`** (modelo com todas variáveis) e **`bad`** (modelo com as variáveis que foram excluídas pela seleção).
+
+# Comparando performances - curvas ROC e AUC
+***
+
+Uma das maneiras utilizadas para comparar a perfomance de modelos é a curva ROC (de [receiver operating characteristic curve](https://developers.google.com/machine-learning/crash-course/classification/roc-and-auc)). Basicamente, a curva ROC correlaciona a proporção de observações classificadas corretamente/incorretamente (erros do tipo I e II), dependendo do liminar utilizado para classificar um evento como positivo ou não. Foge do escopo desse post discutir o arcabouço teórico da curva ROC (certamente tema para um post separado).  
+
+O importante a se entender do gráfico abaixo é que, quanto mais próxima a curva é da diagonal tracejada do plot, pior é a perfomance do modelo, pois essa diagonal indica que a proporção de observações classificadas corretamente é igual à proporção de classificações incorretas (o que indica um modelo sem resolução): 
+
+```{r,preview=TRUE}
+library(broom)
+library(yardstick)
+options(yardstick.event_first = FALSE) 
+
+tabela_full <- full.model %>% 
+                augment() %>% 
+                mutate(cat="full") 
+
+tabela_step <- step.model %>% 
+                augment() %>% 
+                mutate(cat="step") 
+
+tabela_bad <- bad.model %>% 
+                augment() %>% 
+                mutate(cat="bad") 
+
+tabela_models <- full_join(tabela_full,tabela_step)
+
+tabela_models <- full_join(tabela_models,tabela_bad)
+
+tabela_models %>% group_by(cat) %>% roc_curve(truth=as.factor(TenYearCHD),.fitted) %>% 
+  ggplot(
+    aes(
+      x = 1 - specificity, 
+      y = sensitivity, 
+      color=cat
+    )
+  ) + # plot with 2 ROC curves for each model
+  geom_path() +
+  geom_abline(lty = 3) + 
+  ylab("Proporção de positivos verdadeiros") +
+  xlab("Proporção de falsos positivos") +
+  scale_color_manual(values=c("#8c0000","#00368c","#008c2a"))+
+  theme_bw() +
+  labs(color="Valores de\nLimiar") +
+  coord_equal()
+```
+
+O primeiro fato que fica evidente nas curvas é o de que o modelo `bad`, ou seja, aquele com as variáveis que foram **eliminadas** na seleção, teve a pior perfomance, no tocante às curvas ROC. 
+
+A segunda é que em ambos modelos (`full` e `step`), as curvas ROC tiveram comportamento parecido. Porque, se a ideia foi justamente otimizar o modelo? Porquê, no processo de otimização, são retiradas variáveis que geram ruído, mas também variáveis que não contribuem em nada, o que deixa o modelo mais limpo. Um bom modelo é um modelo simples e sem informação irrelevante, minimizando o sobreajuste. 
+
+Vale lembrar, ainda, que embora as curvas ROC estejam similares, os valores de AIC eram diferentes, com o modelo `step` tendo um valor menor.
+
+Embora o gráfico seja intuitivo, é importante quantificar a diferença quanto à performance das curvas de acordo com a ROC. Isso pode ser feito computando a AUC (do inglês *Area under the ROC curve*), que corresponde à area contida na região interna da curva ROC. Quanto maior esse valor, melhor o modelo. A grosso modo, um valor de AUC entre 0.7 e 0.8 é considerado bom. Entre 0.8 e 0.9, a AUC é considerada muito boa e, acima disso, é considerada excelente. Valores abaixo de 0.7 são considerados medíocres, sendo o valor de 0.5 o pior possível, pois corresponde à area delimitada pela diagonal. 
+
+Como as curvas `full` e `step` são parecidas, vou comparar os valores de AUC apenas da curva `step` e `bad`:
+
+```{r}
+do.call("rbind",list(augment(step.model) %>% roc_auc(truth=as.factor(TenYearCHD),.fitted) %>% mutate(model="step"),
+                     augment(bad.model) %>% roc_auc(truth=as.factor(TenYearCHD),.fitted) %>% mutate(model="bad"))) %>% 
+  relocate(model) %>% rename(auc_value=.estimate) %>% dplyr::select(model,auc_value) 
+```
+
+Com base nesses valores podemos considerar o modelo `step` como aceitável e o `bad` não. Vale notar, entretanto, que existem outras maneiras de testar a robustez dos GLM, além do fato de que as curvas ROC podem ser utilizadas para comparar modelos gerados a partir de algoritmos diferentes (GLM vs. Random Forest, por exemplo).
+
+# Intepretando os coeficientes
+***
+
+Com base nas curvas ROC, o modelo de melhor performance foi o modelo `step`, gerado a partir da seleção por passo-a-passo. Analisando os coeficientes, podemos saber quais variáveis tem maior influência na chance de se ter doenças cardíacas ou não:
+
+```{r}
+step.model
+```
+Todas as variáveis incluídas nesse modelo se correlacionam positivamente com a chance de se ter uma doença cardíaca. Para termos uma visão ainda melhor da importância de cada coeficiente, estes podem ser ordenados de acordo com o valor de suas estatísticas t, que consiste nos valores dos coeficientes divididos pelos seus erros padrão:
+
+```{r}
+tibble(variavel=rownames(varImp(step.model)),
+       t.stat=varImp(step.model)[["Overall"]]) %>% 
+  arrange(desc(t.stat))
+```
+
+As variáveis mais relevantes dentre aquelas do modelo selecionado são a idade e o sexo. 
+
+Quando as demais variáveis são constantes, homens tem uma chance `r round(exp(coef(step.model)[["male1"]]), digits=2)` maior de terem doenças cardíacas. Esse incremento é um pouco menor no caso da idade, mas deve-se levar em consideração que essa variável é contínua, o que não é o caso do sexo, que assume apenas dois valores (macho ou fêmea). 
+
+Considerando as demais variáveis constantes, o incremento em uma unidade de idade (ano), acarreta uma chance `r round(exp(coef(step.model)[["age"]]),digits=2)` maior de um paciente ter uma doença cardiovascular. Uma pessoa dez anos mais velha que outra, portanto, nessas condições tem `r round(exp(coef(step.model)[["age"]])*10,digits=2)` mais chances de desenvolver uma doença, de acordo com o modelo.
+
+Sexo e idade, entretanto, não são variáveis cujo controle pode ser feito (você não pode decidir parar de envelhecer, embora seja tentador). Mas o número de cigarros consumidos diariamente sim. Na amostra, o paciente que consome o maior número de cigarros por dia, consome um total de `r df_heart %>%  {max(.$cigsPerDay)}` cigarros diariamente, o que acarreta uma chance `r round(exp(coef(step.model)[["cigsPerDay"]])*70,digits=2)` vezes maior de ter uma doença cardíaca nos próximos dez anos, do que uma pessoa que não fuma, mantendo todas demais variáveis constantes.
+
+Ademais, a presença da glicose e do colesterol dentre as variáveis do modelo denota a importância de uma dieta saudável na prevenção de doenças do coração.
+
+Naturalmente, a hipertensão e a ocorrência de um infarto pretérito, também contribuem para um aumento na chance de se desenvolver doenças.
+
+# Matrizes de confusão, acurácia e poder preditivo
+***
+
+Outra maneira de entender a perfomance de um modelo é através do uso da acurácia. Essa métrica, entretanto, tem de ser utilizada com cautela, principalmente quando o objetivo é fazer análises preditivas. Nesse caso específico, existem dois motivos para isso: o desbalanço de classes e a gravidade da presença de falsos negativos.
+
+Embora o objetivo aqui não tenha sido fazer uma análise preditiva e sim verificar a perfomance dos modelos em relação às variáveis preditoras, vale a pena dar uma olhada em algumas informações das matrizes de confusão dos modelos.
+
+Como foi visto na EDA, feita no início da análise, existem muito mais casos negativos que positivos de pacientes doentes, nos dados. Especificamente, existe uma proporção de 84% de casos negativos e 16% de positivos. Isso significa que, se todos pacientes forem simplesmente classificados como negativos, o modelo vai ter uma taxa de acerto de 84%. Este fato reforça que a acurácia não é a melhor maneira de se comparar a perfomance dos modelos com base nos dados do jeito que estão. Isso pode ser conferido a partir de algumas informações contidas na matriz de confusão dos modelos, gerada usando pacote `caret`. 
+
+Primeiro, a matriz de confusão do modelo step:
+
+```{r}
+tidy_step <- augment(step.model, type.predict = "response") %>% 
+  mutate(TenYearCHD_hat = round(.fitted)) %>% relocate(TenYearCHD_hat)
+
+# tem que colocar o argumento positive = 1 
+  # a funcao considera o fator de primeiro nivel automaticamente como o positivo, que nao eh o caso desse dataset
+
+( 
+a <-   
+confusionMatrix(data = factor(tidy_step$TenYearCHD_hat), reference = factor(tidy_step$TenYearCHD), positive="1",
+                mode = "prec_recall")
+)
+```
+Existe muita informação associada à essa matriz, mas por hora, o foco é a acurácia, que está quantificada em 85%.
+
+Se olharmos a matriz de confusão do modelo `bad`:
+
+```{r}
+tidy_bad <- augment(bad.model, type.predict = "response") %>% 
+  mutate(TenYearCHD_hat = round(.fitted)) %>% relocate(TenYearCHD_hat)
+
+( 
+b <- confusionMatrix(data = factor(tidy_bad$TenYearCHD_hat), reference = factor(tidy_bad$TenYearCHD),
+                positive="1", mode = "prec_recall")
+)
+```
+Vemos que a acurácia desse modelo é bem próximo à do modelo step, sendo de 84%.
+
+Isso aponta para a necessidade de ajustar o balanço de classes dos dados, para otimizá-los para uma análise preditiva. Existem [diversas estratégias](https://www.analyticsvidhya.com/blog/2016/03/practical-guide-deal-imbalanced-classification-problems/) para lidar com esse problema, mas como o objetivo aqui foi analisar os coeficientes, não será abordado.
+
+Ainda assim, é possível ver que, mesmo com o problema da acurácia, o modelo `step` teve uma perfomance um pouco melhor que o modelo `bad`. Isso pode ser conferido olhando outras métricas informadas nas matrizes, sintetizadas na tabela abaixo:
+
+```{r}
+tidy_step <- augment(step.model, type.predict = "response") %>% 
+  mutate(TenYearCHD_hat = round(.fitted)) %>% relocate(TenYearCHD_hat)
+
+# tem que colocar o argumento positive = 1 
+  # a funcao considera o fator de primeiro nivel automaticamente como o positivo, que nao eh o caso desse dataset
+  
+a <- confusionMatrix(data = factor(tidy_step$TenYearCHD_hat), reference = factor(tidy_step$TenYearCHD), positive="1",
+                mode = "prec_recall")
+
+
+tidy_bad <- augment(bad.model, type.predict = "response") %>% 
+  mutate(TenYearCHD_hat = round(.fitted)) %>% relocate(TenYearCHD_hat)
+
+b <- confusionMatrix(data = factor(tidy_bad$TenYearCHD_hat), reference = factor(tidy_bad$TenYearCHD),
+                positive="1", mode = "prec_recall")
+
+
+left_join( 
+tibble(metrica=a$byClass %>% names(),step=a$byClass %>% as.data.frame() %>% {.$.}),
+tibble(metrica=b$byClass %>% names(),bad=b$byClass %>% as.data.frame() %>% {.$.}),
+by="metrica"
+) %>% filter(metrica %in% c("Precision","Recall","F1")) %>% 
+  mutate(metrica=as.factor(metrica)) 
+  
+```
+
+A precisão mede a taxa de observações positivas classificadas corretamente e uma alta precisão indica uma baixa taxa de falsos positivos. A precisão do modelo `step` é relativamente alta. Em contrapartida, a precisão do modelo `bad` foi bem mais baixa. O Recall (sinônimo de sensitividade), foi baixo em ambos modelos, o que compromete o poder preditivo. Ainda, o valor de F1 para ambos modelos também fui muito baixo, reforçando que existe trabalho a ser feito para corrigir o desbalanço de classes.
+
+Além desse problema, mesmo que ele fosse resolvido, outra questão teria que ser abordada. Ainda que fosse alcançado um modelo com alta acurácia e precisão, a presença de falsos negativos poderia ser um problema. Em um estudo desse tipo, onde um falso negativo significa uma pessoa com potencial a desenvolver problemas cardíacos não sendo tratada para tal, é preferível que se tenha um menor poder preditivo geral, desde que o modelo minimize a presença de falsos negativos. O raciocínio é: melhor errar classificando pessoas que não precisam de tratamento como grupos de risco, do que negligenciar o tratamento à pessoas que precisam, por erros de classificação.
+
+Foge também do escopo entrar nessa questão, mas isso poderia ser feito alterando o *threshold* utilizado no modelo para classificar um paciente: minimizando esse valor, também minimizamos a proporção de falsos negativos.
+
+# Conclusões
+***
+
+Com base nos dados e nos modelos implementados, podemos dizer que a idade, sexo e número de cigarros consumidos diariamente estão entre os mais influentes na probabilidade de se desenvolver uma doença cardíaca pelos próximos dez anos.
+
+A questão do cigarro é particularmente alarmante, dado que ele aumenta quase linearmente o risco de se ter uma doença, a cada cigarro a mais consumido diariamente.
+
+A seleção por passo-a-passo funcionou bem para otimizar o modelo, reduzindo seu valor de AIC, aumentando a diferença com o modelo nulo e também aumentando o valor de sua AUC.
+
+Ademais, os dados teriam que ser trabalhados para lidar com o desbalanço de classes presente, fenômeno que compromete a acurácia do poder preditivo dos mesmos.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,14 +1,14 @@
 ---
-title: A Blog That Works
+title: Blog, portfolio & snippets
 description: |
-  This is a fully featured blog that supports categories, 
-  tags, series, and pagination.
-author: "The R Markdown Team @RStudio"
+  Espaço onde coloco alguns projetos pessoais em andamento, snippets de processos diversos para minha própria recordação
+  e alguns posts onde explico ferramentas que podem ajudar alguns colegas.
+author: "Lucas Moraes"
 show_post_thumbnail: true
-show_author_byline: true
-show_post_date: true
+show_author_byline: false
+show_post_date: false
 # for listing page layout
-layout: list-sidebar # list, list-sidebar, list-grid
+layout: list-grid # list, list-sidebar, list-grid
 
 # for list-sidebar layout
 sidebar: 

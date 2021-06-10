@@ -1,0 +1,215 @@
+---
+title: "Data viz: obras de arte"
+excerpt: |
+  Visualização de dados: gráficos facetados
+author:
+  - name: Lucas Moraes.
+    url: https://lucasmoraes.org
+date: 01-12-2021
+categories:
+  - Data viz
+  - facet_wrap()
+  - Tidy tuesday
+  - Leitura rápida
+output:
+  distill::distill_article:
+    toc: true
+    self_contained: false
+---
+
+<style>
+body {
+text-align: justify}
+</style>
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+Post mostrando como criar um gráfico facetado, entre alguns recursos adicionais, a partir de dados do Tidy Tuesday da semana de 12-01-2012.
+
+Como de praxe, o objetivo aqui é apenas fazer uso dos dados para criar uma visualização, explorando um pouco dos recursos do `ggplot2` e alguns pacotes acessórios.
+
+O dataset atual consistem em informações acerca de aproximadamente 70.000 obras de arte. Mais sobre o dataset pode ser conferido no [repositório dos dados](https://github.com/rfordatascience/tidytuesday/blob/master/data/2021/2021-01-12/readme.md).
+
+Aqui, vou mostrar o passo-a-passo de como cheguei no gráfico abaixo:
+
+
+```{r}
+library(tidyverse)
+library(paletteer)
+
+tuesdata <- tidytuesdayR::tt_load('2021-01-12')
+
+artwork <- tuesdata$artwork
+
+artists <- tuesdata$artists
+
+slice_medium <- 
+artwork %>% 
+  count(medium) %>%
+  arrange(desc(n)) %>%
+  na.omit() %>% 
+  slice(1:6) %>% 
+  {.$medium}
+
+artwork %>% filter(medium %in% slice_medium) %>% 
+  select(medium, acquisitionYear) %>% na.omit() %>% 
+  mutate(medium=case_when(medium=="Graphite on paper"~"Grafite em papel",
+                          medium=="Watercolour on paper"~"Aquarela em papel",
+                          medium=="Lithograph on paper"~"Litografia em papel",
+                          medium=="Oil paint on canvas"~"Óleo sobre tela",
+                          medium=="Etching on paper"~"Água-forte em papel",
+                          medium=="Screenprint on paper"~"Impressão em papel")) %>% 
+  ggplot(aes(x=acquisitionYear,fill=medium)) +
+    geom_density() + facet_wrap(~medium, scales = 'free_y') +
+    theme_bw() + theme(legend.position = "none") +
+    scale_fill_paletteer_d("yarrr::appletv") +
+    ylab("Densidade") + xlab("Ano de aquisição") +
+    ggtitle("Distribuição dos anos de aquisição de acordo\ncom as técnicas mais frequentes na amostra")
+
+```
+
+# Extraindo os dados
+
+Primeiro passo é baixar os dados no repositório do Tidy Tuesday. O dataset dessa semana consiste em duas tabelas, `artwork` e `artists`, mas aqui vou usar apenas uma, a tabela `artwork`:
+
+```{r, echo=TRUE, message=FALSE}
+# carregando os pacotes
+library(tidyverse)
+library(paletteer)
+library(rmarkdown)
+
+# baixando a tabela
+
+tuesdata <- tidytuesdayR::tt_load('2021-01-12')
+artwork <- tuesdata$artwork
+```
+
+Estou interessado em duas colunas dessa tabela: a coluna `medium`, que classifica as obras de arte de acordo com a técnica utilizada, e a coluna `acquisitionYear`, que consiste no ano em que a obra foi adquirida no acervo:
+
+```{r, echo = TRUE}
+paged_table(  
+  artwork %>% select(medium,acquisitionYear)
+)
+```
+Existe uma quantidade muito grande de técnicas incluídas na coluna, algumas com certa sobreposição, outras diferindo pouco, pela inclusão de poucas palavras. Não é viável criar um gráfico com todas elas e, sendo assim, vou selecionar as 6 mais frequentes na amostra. Vou armazenar elas em um vetor (`slice_medium`), que depois vou utilizar para filtrar os dados que preciso para o gráfico:
+
+```{r, echo = TRUE}
+( 
+slice_medium <- 
+  artwork %>% 
+    count(medium) %>% # contar cada caso da coluna
+    arrange(desc(n)) %>% # ordenar em ordem decrescente
+    na.omit() %>%  # excluir entradas NA
+    slice(1:6) %>% # selecionar 6 primeiras entradas
+    {.$medium} # selecionar apenas os nomes das técnicas
+)
+```
+Com base nesse vetor, posso selecionar apenas as linhas correspondentes à essas técnicas e fazer o gráfico. As entradas estão em inglês e sim, vou traduzi-las.
+
+Primeira coisa que vou fazer então é isso: selecionar apenas as técnicas acima e passar elas para o bom português:
+
+```{r,  eval = FALSE, echo = TRUE}
+artwork %>% filter(medium %in% slice_medium) %>% # selecionando apenas as entradas contidas no vetor
+  select(medium, acquisitionYear) %>% # selecionando apenas as colunas de interesse
+  na.omit() %>% # omitindo entradas NA
+  mutate(medium=case_when(medium=="Graphite on paper"~"Grafite em papel", # traduzindo cada técnica
+                          medium=="Watercolour on paper"~"Aquarela em papel",
+                          medium=="Lithograph on paper"~"Litografia em papel",
+                          medium=="Oil paint on canvas"~"Óleo sobre tela",
+                          medium=="Etching on paper"~"Água-forte em papel",
+                          medium=="Screenprint on paper"~"Impressão em papel"))
+```
+Agora já posso começar a trabalhar no gráfico. Quero plotar a densidade dos valores de ano de aquisição, agrupando os dados por tipo de técnica e atribuindo uma cor para cada:
+
+```{r, echo = TRUE}
+artwork %>% filter(medium %in% slice_medium) %>%
+  select(medium, acquisitionYear) %>% 
+  na.omit() %>% # 
+  mutate(medium=case_when(medium=="Graphite on paper"~"Grafite em papel", 
+                          medium=="Watercolour on paper"~"Aquarela em papel",
+                          medium=="Lithograph on paper"~"Litografia em papel",
+                          medium=="Oil paint on canvas"~"Óleo sobre tela",
+                          medium=="Etching on paper"~"Água-forte em papel",
+                          medium=="Screenprint on paper"~"Impressão em papel")) %>% 
+  
+ggplot(aes(x=acquisitionYear,fill=medium)) + # definindo eixo x e cores diferentes para cada categoria
+    geom_density() + # gráfico de densidade
+    facet_wrap(~medium) # facetar por técnica
+```
+
+O gráfico fica feio pois por padrão, as escalas dos eixos são fixas. Nesse caso isso não é necessário, pois quero ver a distribuição dos valores em relação às técnicas e não aos dados gerais. Sendo assim, posso deixar a escala do eixo y livre:
+
+```{r, echo = TRUE}
+artwork %>% filter(medium %in% slice_medium) %>% 
+  select(medium, acquisitionYear) %>% na.omit() %>% 
+  mutate(medium=case_when(medium=="Graphite on paper"~"Grafite em papel",
+                          medium=="Watercolour on paper"~"Aquarela em papel",
+                          medium=="Lithograph on paper"~"Litografia em papel",
+                          medium=="Oil paint on canvas"~"Óleo sobre tela",
+                          medium=="Etching on paper"~"Água-forte em papel",
+                          medium=="Screenprint on paper"~"Impressão em papel")) %>% 
+  ggplot(aes(x=acquisitionYear,fill=medium)) +
+    geom_density() + facet_wrap(~medium, 
+                                scales = 'free_y') # argumento para deixa a escala y livre
+```
+Em seguida, vou alterar o tema e a paleta de cores. Para alterar as cores, estou usando a função `scale_fill_paletteer_d()`, que vai agir nas cores dos grupos determinados pelo argumento `fill` do argumento `aes` da função `ggplot`. Essa função vem no pacote `[paletteer](https://github.com/EmilHvitfeldt/paletteer)`, que compila muitas paletas de cores para gráficos, facilitando essa escolha. Algumas dessas paletas estão [listadas aqui](https://github.com/PMassicotte/paletteer_gallery)! Nesse caso usei a paleta `appletv` do conjunto `yarrr`. Também vou aproveitar para retirar a legenda desse gráfico, que é um tanto quanto redundante:
+
+
+```{r, echo = TRUE}
+artwork %>% filter(medium %in% slice_medium) %>% 
+  select(medium, acquisitionYear) %>% na.omit() %>% 
+  mutate(medium=case_when(medium=="Graphite on paper"~"Grafite em papel",
+                          medium=="Watercolour on paper"~"Aquarela em papel",
+                          medium=="Lithograph on paper"~"Litografia em papel",
+                          medium=="Oil paint on canvas"~"Óleo sobre tela",
+                          medium=="Etching on paper"~"Água-forte em papel",
+                          medium=="Screenprint on paper"~"Impressão em papel")) %>% 
+  ggplot(aes(x=acquisitionYear,fill=medium)) +
+    geom_density() + 
+    facet_wrap(~medium, scales = 'free_y') +
+    theme_bw() + # alterando tema
+    theme(legend.position = "none") + # eliminando a legenda
+    scale_fill_paletteer_d("yarrr::appletv") # atribuindo paleta
+```
+Por último, vou ajeitar os textos dos eixos e o título:
+
+```{r, echo = TRUE}
+artwork %>% filter(medium %in% slice_medium) %>% 
+  select(medium, acquisitionYear) %>% na.omit() %>% 
+  mutate(medium=case_when(medium=="Graphite on paper"~"Grafite em papel",
+                          medium=="Watercolour on paper"~"Aquarela em papel",
+                          medium=="Lithograph on paper"~"Litografia em papel",
+                          medium=="Oil paint on canvas"~"Óleo sobre tela",
+                          medium=="Etching on paper"~"Água-forte em papel",
+                          medium=="Screenprint on paper"~"Impressão em papel")) %>% 
+  ggplot(aes(x=acquisitionYear,fill=medium)) +
+    geom_density() + 
+    facet_wrap(~medium, scales = 'free_y') +
+    theme_bw() + 
+    theme(legend.position = "none") + 
+    scale_fill_paletteer_d("yarrr::appletv") +
+    ylab("Densidade") + # Título do eixo y
+    xlab("Ano de aquisição") + # Título do eixo x
+    ggtitle("Distribuição dos anos de aquisição de acordo\ncom as técnicas mais frequentes na amostra") # Título do gráfico
+
+```
+
+E aí está!
+
+A ideia aqui não é analisar os dados, mas algumas conclusões superficiais podem ser extraídas do gráfico, como por exemplo o fato de que as obras de grafite e aquarela em papel possuem datas de aquisição mais antigas ou que o contrário ocorre, no caso das obras de água forte  ou litografia em papel.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
