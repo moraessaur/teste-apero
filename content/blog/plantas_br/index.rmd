@@ -17,17 +17,13 @@ categories:
 knitr::opts_chunk$set(echo = FALSE)
 ```
 
-# Teste
-
-Teste
-
 # Dados - Flora 2020
 
 Nessa análise usei dados extraídos do projeto [Flora 2020](http://floradobrasil.jbrj.gov.br/reflora/PrincipalUC/PrincipalUC.do;jsessionid=1BF8C99966A4F63202D27DF3CFBA80B0) do Jardim Botânico do Rio de Janeiro, para gerar algumas visualizações. Como a compilação destes dados foi um processo longo, não vou tratar dela nesse post, mas todas etapas podem ser conferidas [em minhas Github pages](https://moraessaur.github.io/flora2020_analysis/), na íntegra e com código. A idéia aqui era fazer uma análise mais enxuta e pragmática.
 
 Os dados estão organizados em uma tabela deinida como `df_master`, que contém uma série de informações sobre espécies nativas de plantas brasileiras:
 
-```{r}
+```{r, message=FALSE,warning=FALSE}
 library(tidyverse)
 library(rmarkdown)
 library(ggExtra)
@@ -62,7 +58,7 @@ Vou fazer minhas análises e construir as visualizações com base nessas inform
 
 Como botânico, sei que o número de descrições de plantas brasileiras vem aumentando ao longo dos anos. Mas quero entender como que esses números se comportaram ao longo do tempo. Para isso agrupei o número de espécies descritas por ano e plotei um gráfico de linhas. Já aproveitei o trabalho e dividi também as informações por século, colocando diferentes cores para cada um:
 
-```{r}
+```{r, message=FALSE,warning=FALSE}
 p1 <- df_master %>% 
   count(desc_year) %>% 
   mutate(desc_century = case_when(desc_year < 1800 ~ "Século 18",
@@ -102,7 +98,7 @@ p1
 
 O sistema linneaniano foi criado em 1750, então é de se esperar que o número de descrições seja menor nessa época. A curva indica um aumento na taxa de descrições ao longo do século 18, seguida por leve diminuição na taxa em meados do século 19, onde finalmente assume uma taxa de crescimento constante a partir daí, com o ano com maior número de descrições sendo 2001. É bastante evidente a elevada taxa de descrição do século 21, informação que fica mais evidente quando comparamos os valores absolutos e a distribuição destes, por século:
 
-```{r}
+```{r, message=FALSE,warning=FALSE}
 p2 <- df_master %>% 
   count(desc_year) %>% 
   mutate(desc_century = case_when(desc_year < 1800 ~ "Século 18",
@@ -148,11 +144,12 @@ head(df_master %>%
   rename(autor=Var1,total_descricoes=Freq)
 )
 ```
-O fato de o termo *Orgs.* aparecer no autor com maior número de descrições de 2001, indica se tratar de uma obra. Ainda, o número de espécies descritas associadas com esse nome é muito maior que a média dos demais autores, o que faz sentido, dado que a obra deve compilar descrições de vários. Uma busca rápida me mostrou que um livro entitulado [“Biodiversidade de algas de ambientes continentais do Estado do Rio de Janeiro”](https://www.researchgate.net/publication/44430175_Biodiversidade_de_algas_de_ambientes_continentais_do_Estado_do_Rio_de_Janeiro_organizadoras_Mariangela_Menezes_Izabel_Cristina_Alves_Dias), com as referidas autoras, foi publicado em 2001. Partindo do título, podemos pressupor que uma grande quantidade de algas foram descritas nesse ano. 
+
+O fato de o termo *Orgs* aparecer no autor com maior número de descrições de 2001, indica se tratar de uma obra. Ainda, o número de espécies descritas associadas com esse nome é muito maior que a média dos demais autores, o que faz sentido, dado que a obra deve compilar descrições de vários. Uma busca rápida me mostrou que um livro entitulado [“Biodiversidade de algas de ambientes continentais do Estado do Rio de Janeiro”](https://www.researchgate.net/publication/44430175_Biodiversidade_de_algas_de_ambientes_continentais_do_Estado_do_Rio_de_Janeiro_organizadoras_Mariangela_Menezes_Izabel_Cristina_Alves_Dias) , com as referidas autoras, foi publicado em 2001. Partindo do título, podemos pressupor que uma grande quantidade de algas foram descritas nesse ano. 
 
 Normalmente, espera-se que o número absoluto de angiospermas descritas por ano seja maior que os demais grandes grupos (devido à sua diversidade), isso fica evidente quando os dados são agrupados por século e grupo taxonômico:
 
-```{r}
+```{r, message=FALSE,warning=FALSE}
 df_master %>% 
   mutate(desc_century = case_when(desc_year < 1800 ~ "Século 18",
                                       desc_year >= 1800 & desc_year < 1900 ~ "Século 19",
@@ -172,7 +169,7 @@ ggtitle("Total de espécies descritas (log), por século, agrupado por grupo tax
 ```
 A escala do eixo y foi convertida para log, dado que o baixo número relativo de descrições de gimnospermas acaba mascarando a presença delas. Gimnospermas aparecem descritas apenas no século 19 e 21, sendo a maioria no primeiro. Angiospermas correspondem ao grupo com maior número de descrições em todos séculos, embora a diferença entre estas e as algas seja bem menor no século 21. Isso em parte ocorre, de fato, pela alta de descrições de algas no ano de 2001, que teve mais algas descritas que angiospermas:
 
-```{r}
+```{r, message=FALSE,warning=FALSE}
 df_master %>% filter(desc_year==2001) %>%  
   count(major_group) %>% na.omit() %>% 
  ggplot(aes(x=major_group,y=n, fill = major_group)) + geom_bar(stat='identity', position = 'dodge') +
@@ -188,7 +185,7 @@ O total de algas descritas nesse ano foi mais que o dobro que o de angiospermas,
 Generalizando esses números, podemos investigar a distribuição do total de descrições/ano por grupo taxonômico, que também rende alguns *insights* interessantes:
 
 
-```{r}
+```{r, message=FALSE,warning=FALSE}
 df_master %>% ggplot(aes(y=as.numeric(desc_year),x=major_group,fill=major_group)) +
   xlab("Major group") + 
                 ylab("Description year") + 
