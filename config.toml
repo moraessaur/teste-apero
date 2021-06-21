@@ -110,7 +110,7 @@ enableEmoji = true
     url = "/about/"
     weight = 1
   [[menu.header]]
-    name = "Blog"
+    name = "Blog & Portfolio"
     title = "Blog"
     url = "/blog/"
     weight = 2
