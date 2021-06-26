@@ -7,7 +7,7 @@ description: |
  Alguns exemplos do que faço:
 
  * Coleta de informações de bases de dados.
- * Estruturamento de dados e tabelas para análises posteriores.
+ * Estruturamento de dados e tabelas para análises.
  * Limpeza e formatação de dados estruturados ou não.
  * Dataviz: formatação/geração de gráficos, adequação de visualizações.  
   * Estatística descritiva.

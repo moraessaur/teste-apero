@@ -126,11 +126,12 @@ enableEmoji = true
     title = "Teste"
     url = "/contact/"
     weight = 4
-[[menu.header]]
-    name = "English"
-    title = "Teste"
-    url = "https://www.lucasmoraes.io"
-    weight = 5
+# Colocar de novo depois
+#[[menu.header]]
+#    name = "English (soon)"
+#    title = "Teste"
+#    url = "blank"
+#    weight = 5
 
   # Configure footer  
   #[[menu.footer]]

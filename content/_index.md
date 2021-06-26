@@ -1,6 +1,6 @@
 ---
 title: "Lucas Moraes"
-subtitle: "Cientista de dados e biólogo."
+subtitle: "Cientista de dados & biólogo."
 description: "MSc e BSc em genética, apaixonado por ciência de dados.<br><br> Uso ferramentas
 de data science, estatística e programação na resolução de perguntas e problemas.<br><br>
 Neste site pessoal reúno algumas informações sobre minha vida profissional, portfolio e 
