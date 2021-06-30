@@ -21,7 +21,7 @@ knitr::opts_chunk$set(echo = FALSE)
 
 Nessa análise usei dados extraídos do projeto [Flora 2020](http://floradobrasil.jbrj.gov.br/reflora/PrincipalUC/PrincipalUC.do;jsessionid=1BF8C99966A4F63202D27DF3CFBA80B0) do Jardim Botânico do Rio de Janeiro, para gerar algumas visualizações. Como a compilação destes dados foi um processo longo, não vou tratar dela nesse post, mas todas etapas podem ser conferidas [em minhas Github pages](https://moraessaur.github.io/flora2020_analysis/), na íntegra e com código. A idéia aqui era fazer uma análise mais enxuta e pragmática.
 
-Os dados estão organizados em uma tabela deinida como `df_master`, que contém uma série de informações sobre espécies nativas de plantas brasileiras:
+Os dados estão organizados em uma tabela definida como `df_master`, que contém uma série de informações sobre espécies nativas de plantas brasileiras:
 
 ```{r, message=FALSE,warning=FALSE}
 library(tidyverse)
@@ -41,7 +41,7 @@ df_master <- read_delim(file="https://www.dropbox.com/s/oes7wux3rx5jgel/df_maste
 pal=pnw_palette("Bay",5, type = "discrete")
 ```
 
-Das 12 colunas ddessa tabela, vou usar as informações contidas em cinco:
+Das 12 colunas dessa tabela, vou usar as informações contidas em cinco:
 
 1. `desc_year`: ano de descrição da espécie
 2. `desc_author`: nome do autor vinculado à descrição da espécie.
@@ -51,12 +51,12 @@ Das 12 colunas ddessa tabela, vou usar as informações contidas em cinco:
 6. `Endemism`: se a espécie é endêmica do Brasil ou não.
 
 
-Vou fazer minhas análises e construir as visualizações com base nessas informações e derivações delas.
+Vou fazer minhas análises e construir as visualizações com base nessas informações e derivações das mesmas.
 
 # Descrições ao longo do tempo
 ***
 
-Como botânico, sei que o número de descrições de plantas brasileiras vem aumentando ao longo dos anos. Mas quero entender como que esses números se comportaram ao longo do tempo. Para isso agrupei o número de espécies descritas por ano e plotei um gráfico de linhas. Já aproveitei o trabalho e dividi também as informações por século, colocando diferentes cores para cada um:
+Como botânico, sei que o número de descrições de plantas brasileiras vem aumentando ao longo dos anos. Mas quero entender como que esses números se comportam ao longo do tempo. Para isso agrupei o número de espécies descritas por ano e plotei um gráfico de linhas. Já aproveitei o trabalho e dividi as informações por século, colocando diferentes cores para cada:
 
 ```{r, message=FALSE,warning=FALSE}
 p1 <- df_master %>% 
@@ -96,7 +96,7 @@ geom_text(aes(x = 1920, y = 750, label = "855 espécies \ndescritas em 2001"),
 p1
 ```
 
-O sistema linneaniano foi criado em 1750, então é de se esperar que o número de descrições seja menor nessa época. A curva indica um aumento na taxa de descrições ao longo do século 18, seguida por leve diminuição na taxa em meados do século 19, onde finalmente assume uma taxa de crescimento constante a partir daí, com o ano com maior número de descrições sendo 2001. É bastante evidente a elevada taxa de descrição do século 21, informação que fica mais evidente quando comparamos os valores absolutos e a distribuição destes, por século:
+O sistema linneaniano foi criado em 1750, então é de se esperar que o número de descrições seja menor nessa época. A curva indica um aumento na taxa de descrições ao longo do século 18, seguida por leve diminuição na taxa em meados do século 19, onde finalmente assume uma taxa de crescimento constante a partir daí, com o ano com maior número de descrições sendo 2001. É bastante evidente a elevada taxa de descrição do século 21, informação que fica mais evidente quando comparamos as distribuições e valores absolutos destes, por século:
 
 ```{r, message=FALSE,warning=FALSE}
 p2 <- df_master %>% 
@@ -130,6 +130,7 @@ p3 <- df_master %>%
 
 (grid_p <- plot_grid(p2,p3, nrow=1,ncol = 2,labels = c('A', 'B')))
 ```
+<br>
 Os boxplots deixam clara a alta taxa de descrições do século 21, que tem uma mediana de aproximadamente 300 espécies descritas por ano. Os gráficos de barras (B) indicam que, embora apenas 20% do século 21 tenha passado, ele já tem cerca de 80% do total de descrições do século 20 inteiro.
 
 Vou dar uma investigada mais a fundo no ano de 2001, olhando os autores mais prolíficos, em termos de descrições, para esse ano:
@@ -145,7 +146,7 @@ head(df_master %>%
 )
 ```
 
-O fato de o termo *Orgs* aparecer no autor com maior número de descrições de 2001, indica se tratar de uma obra. Ainda, o número de espécies descritas associadas com esse nome é muito maior que a média dos demais autores, o que faz sentido, dado que a obra deve compilar descrições de vários. Uma busca rápida me mostrou que um livro entitulado [“Biodiversidade de algas de ambientes continentais do Estado do Rio de Janeiro”](https://www.researchgate.net/publication/44430175_Biodiversidade_de_algas_de_ambientes_continentais_do_Estado_do_Rio_de_Janeiro_organizadoras_Mariangela_Menezes_Izabel_Cristina_Alves_Dias) , com as referidas autoras, foi publicado em 2001. Partindo do título, podemos pressupor que uma grande quantidade de algas foram descritas nesse ano. 
+O fato de o termo *Orgs* aparecer no autor com maior número de descrições de 2001, indica se tratar de uma obra. Ainda, o número de espécies descritas associadas com esse nome é muito maior que a média dos demais autores, o que faz sentido, dado que a obra deve compilar descrições de vários cientistas diferentes. Uma busca rápida me mostrou que um livro entitulado [“Biodiversidade de algas de ambientes continentais do Estado do Rio de Janeiro”](https://www.researchgate.net/publication/44430175_Biodiversidade_de_algas_de_ambientes_continentais_do_Estado_do_Rio_de_Janeiro_organizadoras_Mariangela_Menezes_Izabel_Cristina_Alves_Dias) , com as referidas autoras, foi publicado em 2001. Partindo do título, podemos pressupor que uma grande quantidade de algas foram descritas nesse ano. 
 
 Normalmente, espera-se que o número absoluto de angiospermas descritas por ano seja maior que os demais grandes grupos (devido à sua diversidade), isso fica evidente quando os dados são agrupados por século e grupo taxonômico:
 
@@ -167,6 +168,7 @@ ggtitle("Total de espécies descritas (log), por século, agrupado por grupo tax
         axis.ticks.x=element_blank()) + 
   facet_wrap(~desc_century,scales = "free_x")
 ```
+<br>
 A escala do eixo y foi convertida para log, dado que o baixo número relativo de descrições de gimnospermas acaba mascarando a presença delas. Gimnospermas aparecem descritas apenas no século 19 e 21, sendo a maioria no primeiro. Angiospermas correspondem ao grupo com maior número de descrições em todos séculos, embora a diferença entre estas e as algas seja bem menor no século 21. Isso em parte ocorre, de fato, pela alta de descrições de algas no ano de 2001, que teve mais algas descritas que angiospermas:
 
 ```{r, message=FALSE,warning=FALSE}
@@ -180,6 +182,7 @@ df_master %>% filter(desc_year==2001) %>%
   removeGridX() +
   theme(panel.border = element_blank(), legend.position = "none")
 ```
+<br>
 O total de algas descritas nesse ano foi mais que o dobro que o de angiospermas, sendo que destas algas descritas, 90% estão vinculadas à obra citada anteriormente. 
 
 Generalizando esses números, podemos investigar a distribuição do total de descrições/ano por grupo taxonômico, que também rende alguns *insights* interessantes:
@@ -279,7 +282,7 @@ x %>%
 ```
 Este gráfico foi reduzido para englobar o intervalo entre 1990 e 2019. Entretanto, os valores de densidade se referem à amostra inteira, não apenas a esse intervalo. Fica evidente nele a importância do ano de 2001 (e das algas) no histórico de descrições anuais de plantas brasileiras, mesmo quando em comparação com os outros estados nesse período. Além disso, embora a tendência na taxa de descrições anuais seja aumentar conforme o tempo passa, a década entre 2000 e 2010 foi a com os maiores valores de descrições anuais de plantas (região demarcada por linhas tracejadas). 
 
-Existe outra característica interessante nesse plot. Os estados foram ordenados, propositadamente, de acordo com suas regiões. Os estados localizados na parte inferior do gráfico são todos do sudeste do Brasil e pode-se ver uma clara concentração de maiores valores de densidade de descrições entre eles. A parte destes, apenas os estados da Bahia e do Amazonas parecem ter uma concentração significante o suficiente para ser vista, no gráfico pelo menos, o que indica um desbalanço no número de coletas entre os estados brasileiros.
+Existe outra característica interessante nesse plot. Os estados foram ordenados, propositalmente, de acordo com suas regiões. Os estados localizados na parte inferior do gráfico são todos do sudeste do Brasil e pode-se ver uma clara concentração de valores altos de densidade de descrições, entre eles. À parte destes, apenas os estados da Bahia e do Amazonas parecem ter uma concentração significante o suficiente para ser vista, no gráfico pelo menos, o que indica um desbalanço no número de coletas entre os estados brasileiros.
 
 Poderia ser argumentado que essas características estão ligadas à extensão territorial e, embora não seja minha proposta testar isso a fundo, essa questão pode ser testada graficamente: estados maiores tem maior número de espécies descritas?
 
@@ -341,6 +344,7 @@ k %>% filter(state != "NA") %>% ggplot(aes(x=species,y=prop,size=area,label=stat
   ggtitle("Relação entre as proporções de espécies endêmicas, total de espécies \ne seus estados de ocorrência") +
   theme(legend.position = "none",panel.border = element_blank()) 
 ```
+<br>
 O tamanho dos pontos e siglas no gráfico representa a área dos estados. A cor indica se um estado possui (vermelho) ou não possui (azul), fronteiras com outros **países**. O que pode ser visto, primeiramente, é que não necessariamente um estado grande possui um maior número número de espécies descritas. Nenhum dos maiores estados brasileiros (Amazonas, Pará e Mato Grosso), estão entre aqueles com maior número total de espécies descritas, sendo estes os estados de Minas Gerais, Bahia, Rio de Janeiro e São Paulo. O Rio de Janeiro, inclusive, é um dos menores estados do Brasil, embora tenha alta quantidade de espécies descritas. Isso em parte pode ser explicado por um viés em investimento em pesquisa e esforço de coleta.
 
 Em relação ao endemismo, o tamanho dos estados parecem ter menos influência ainda na proporção destas. Entretanto, conforme o esperado, a presença de fronteiras internacionais nos estados tem grande relação com a proporção de espécies endêmicas dos mesmos: nenhum estado com proporção de espécies endêmicas maior que 40%, possui fronteiras internacionais. O contrário também é verdadeiro, no sentido de que todos estados com menos de 20% desta proporção possuem fronteiras internacionais.

@@ -29,13 +29,13 @@ Meu objetivo aqui vai ser escolher uma variável de resposta e a melhor variáve
 
 Primeiro vou dar uma olhada no dataset:
 
-```{r}
+```{r, message=FALSE}
 library(rmarkdown)
 library(tidyverse) 
 library(broom)
 library(car)
 library(ggExtra)
-
+library(plotly)
 
 paged_table( 
 fish <- read_csv("https://www.dropbox.com/s/n45vml0ayoq0omx/fish.csv?dl=1")
@@ -51,7 +51,7 @@ Os nomes de coluna não são muito intuitivos, então vou descrever cada um:
 6. `Height`: altura em cm.
 7. `Width`: largura diagonal em cm.
 
-Vou definir como minha variável de resposta o peso do peixe, esse é o valor que quero prever em função das demais variáveis explicativas. Para dar início à análise, entao, vou plotar a correlacao de minha varável de resposta com todas as demais variáveis explanatórias e calcular o $R^2$ de cada caso.
+Vou definir como minha variável de resposta o peso do peixe, esse é o valor que quero prever em função das demais variáveis explicativas. Para dar início à análise, então, vou plotar a correlação de minha variável de resposta com todas as demais variáveis explicativas e calcular o $R^2$ de cada caso.
 
 Para plotar tudo de uma vez, alterei um pouco a tabela e criei um grid:
 
@@ -66,6 +66,7 @@ fish %>% # alterando a disposição de colunas para a plotagem
   xlab("Variáveis explanatórias, em escala livre.") +
   facet_wrap(~explanatory, scales="free")
 ```
+<br>
 Dá para perceber que a correlação do peso com as demais medidas é positiva em todos casos, em alguns mais e outros menos, pela inclinação das retas de regressão (tracejadas azuis). Entretanto, fica difícil entender a robustez dos modelos (na forma de $R^2$) visualmente. Portanto, vou computar esses valores em uma tabela e ordenar em ordem decrescente:
 
 ```{r}
@@ -87,11 +88,11 @@ tibble(variables=explanatory,r_squared=unlist(map(explanatory,rsquared_mod))) %>
     arrange(desc(r_squared))
 ```
 
-Essa tabela me dá os valores de $R^2$ para cada modelo simples de peso em relação a cada uma das outras variáveis independentemente. 
+Essa tabela me dá os valores de $R^2$ para cada modelo de peso em função a cada uma das demais variáveis, de maneira independente.
 
 As três medidas de comprimento são as que melhor descrevem o comportamento do peso. A altura é a medida menos robusta e a largura fica no meio do caminho. Os valores altos dos modelos que levam em consideração os diferentes tipos de comprimento apontam para uma possível colinearidade entre essas variáveis. Isso significa que, em um modelo multivariado, essas medidas provavelmente seriam redundantes.
 
-Vou desenvolver isso um pouco mais a frente, mas por hora, como vou fazer uma regressão simples, vou usar a variável `Length3` como explanatória, dado que ela resultou no maior valor de $R^2$.
+Vou desenvolver isso um pouco mais a frente, mas por hora, como vou fazer uma regressão simples, vou usar a variável `Length3` como explicativa, dado que ela resultou no maior valor de $R^2$.
 
 Abaixo, os coeficientes do modelo:
 
@@ -119,7 +120,7 @@ fish %>% ggplot(aes(y=Weight,x=Length3)) +
   theme(plot.title = element_text(size = 10))
 ```
 
-Um fator interessante de se notar é a provável alta influência dos pontos associados à espécie Pike (em roxo), na inclinação e erro associado da reta, devido ao alto valor tanto de peso quanto de comprimento cruzado de alguns de seus pontos. Essa espécie provavelmente tem maiores valores, em média, de distância de cook para suas observações, o que vai influenciar no comportamento da reta. Podemos checar isso sumarizando o modelo e esses valores, por espécie:
+Um fator interessante de se notar, é a provável alta influência dos pontos associados à espécie Pike (em roxo), na inclinação e erro associado à reta, devido ao alto valor tanto de peso quanto de comprimento cruzado de alguns de seus pontos. Essa espécie provavelmente tem maiores valores, em média, de distância de cook para suas observações, o que vai influenciar no comportamento da reta. Podemos checar isso sumarizando o modelo e esses valores, por espécie:
 
 
 ```{r}
@@ -189,7 +190,7 @@ fish %>% ggplot(aes(y=Weight,x=Length3)) + geom_point() + geom_smooth(method="lm
 
 A espécie Pike é a única com valores de peso maiores que 1500. Já a espécie Smelt tem **apenas** valores próximos de zero, reforçando um pouco da influência destas na qualidade da regressão. Essa informação é redundante com o gráfico onde os pontos foram pintados de acordo com as espécies de referência, mas é uma maneira distinta de enxergar essa questão.
 
-Esse tipo de fator levanta a questão: quais espécies escolher para estabelecer um modelo geral? Uma maneira de fazer isso seria calculando o $R^2$ associado ao modelo escolhido **por espécie**, mas também indicando o número de observações por espécie existe nos dados:
+Esse tipo de fator levanta a questão: quais espécies escolher para estabelecer um modelo geral? Uma maneira de fazer isso seria calculando o $R^2$ associado ao modelo escolhido **por espécie**, mas também indicando o número de observações por espécie que existe nos dados:
 
 ```{r}
 
