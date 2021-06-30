@@ -28,7 +28,7 @@ Regressão logística usando o dataset [*Logistic regression to predict heart di
 
 Este dataset consiste em uma tabela com uma série de variáveis de pacientes com e sem doenças cardíacas. O objetivo aqui é conferir a probabilidade de um paciente vir a desenvolver doenças cardíacas em sua próxima década de vida, com base nessas informações. 
 
-Nessa análise vou usar uma regressão logística para entender as variáveis que melhor descrevem a variável de resposta (risco de doenças cardíacas nos próximos dez anos), não incluindo nesse post analises preditivas.
+Nessa análise vou usar uma regressão logística para entender as variáveis que melhor descrevem a variável de resposta (risco de doenças cardíacas nos próximos dez anos), não incluindo nesse post análises preditivas.
 
 Para selecionar as variáveis do modelo, vou usar uma seleção em passo-a-passo ([*stepwise regression*](https://en.wikipedia.org/wiki/Stepwise_regression)). Em seguida, vou comparar a performance de meus diferentes modelos usando curvas ROC e a AUC e analisar os coeficientes do modelo escolhido. Também discuto brevemente a acurácia do modelo, a importância de seus falsos negativos e o desbalanço de classes presente no conjunto de dados.
 
@@ -39,49 +39,6 @@ Exponho parte do código na análise, mas para ter acesso a todo código utiliza
 
 O primeiro passo é sempre dar uma olhada na estrutura da tabela:
 
-
-```
-## ── Attaching packages ─────────────────────────────────────── tidyverse 1.3.0 ──
-```
-
-```
-## ✓ ggplot2 3.3.3     ✓ purrr   0.3.4
-## ✓ tibble  3.1.2     ✓ dplyr   1.0.5
-## ✓ tidyr   1.1.3     ✓ stringr 1.4.0
-## ✓ readr   1.4.0     ✓ forcats 0.5.1
-```
-
-```
-## ── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──
-## x dplyr::filter() masks stats::filter()
-## x dplyr::lag()    masks stats::lag()
-```
-
-```
-## Loading required package: lattice
-```
-
-```
-## 
-## Attaching package: 'caret'
-```
-
-```
-## The following object is masked from 'package:purrr':
-## 
-##     lift
-```
-
-```
-## 
-## Attaching package: 'MASS'
-```
-
-```
-## The following object is masked from 'package:dplyr':
-## 
-##     select
-```
 
 ```
 ## Rows: 4,238
@@ -125,6 +82,7 @@ Em seguida vou fazer uma análise exploratória simples e rápida. Vou primeiro 
 ```
 
 <img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-3-1.png" width="672" />
+<br>
 As correlações são fracas entre as variáveis, no geral. Isso aponta, *a priori*, para a não colinearidade entre elas, com exceção da relação entre `sysBP` e `diaBP`, que parecem se correlacionar. Como nesse caso vou fazer uma seleção por passo-a-passo, essas duas variáveis provavelmente não vão ficar juntas no modelo, mas vale ficar atento.
 
 Vou agora checar a propoção de casos positivos e negativos em minha variável de resposta, essa informação está armazenada na coluna `TenYearCHD`:
@@ -135,7 +93,7 @@ Vou agora checar a propoção de casos positivos e negativos em minha variável 
 ##    0    1 
 ## 3594  644
 ```
-Existe uma proporção mais alta de pacientes que não desenvolveram doenças (0). Essa é uma informação que vai ser interessante de saber na hora de checar a robustez e acurácia dos modelos, embora não seja condição em uma regressão logística que essas proporções sejam parecidas, para checar a influência dos preditores.
+Existe uma proporção mais alta de pacientes que não desenvolveram doenças (0). Essa é uma informação que vai ser interessante saber na hora de checar a robustez e acurácia dos modelos. Embora não seja condição em uma regressão logística que essas proporções sejam parecidas para checar a influência dos preditores.
 
 Finalmente, preciso conferir a presença de valores ausentes na amostra:
 
@@ -150,7 +108,7 @@ Finalmente, preciso conferir a presença de valores ausentes na amostra:
 ##      TenYearCHD 
 ##               0
 ```
-Vou retirar todas linhas com valores ausentes, pois eles podem inviabilizar ou comprometer a qualidade dos modelos.
+Vou retirar todas linhas com valores ausentes, pois eles podem inviabilizar ou comprometer a qualidade dos modelos, além de não terem aparecido em grande quantidade.
 
 
 
@@ -232,7 +190,7 @@ O valor de AIC do modelo otimizado diminuiu, assim como uma série de variáveis
 ## [9] "heartRate"
 ```
 
-Um ponto interessante de reparar é que `diaBP` foi eliminada em detrimento de `sysBP`, que foi mantida. Essas eram as variáveis que apresentavam aparente colinearidade. O número de cigarros que um paciente fuma parece contribuir mais que apenas a informação se ele fuma ou não, dado que a variável `currentSmoker` foi eliminada do modelo. Vou agora criar um modelo usando **apenas** as variáveis que foram **eliminadas**, chamando este de `bad.model`:
+Um ponto interessante de reparar é que `diaBP` foi eliminada em detrimento de `sysBP`, que foi mantida. Essas eram as variáveis que apresentavam aparente colinearidade. O número de cigarros que um paciente fuma parece contribuir mais que apenas a informação de se ele fuma ou não, dado que a variável `currentSmoker` foi eliminada do modelo. Vou agora criar um modelo usando **apenas** as variáveis que foram **eliminadas**, chamando este de `bad.model`:
 
 
 
@@ -269,48 +227,9 @@ Para simplificar, vou chamar os três modelos que vou comparar de **`step`** (mo
 # Comparando performances - curvas ROC e AUC
 ***
 
-Uma das maneiras utilizadas para comparar a perfomance de modelos é a curva ROC (de [receiver operating characteristic curve](https://developers.google.com/machine-learning/crash-course/classification/roc-and-auc)). Basicamente, a curva ROC correlaciona a proporção de observações classificadas corretamente/incorretamente (erros do tipo I e II), dependendo do liminar utilizado para classificar um evento como positivo ou não. Foge do escopo desse post discutir o arcabouço teórico da curva ROC (certamente tema para um post separado).  
+Uma das maneiras utilizadas para comparar a perfomance de modelos é a curva ROC (de [receiver operating characteristic curve](https://developers.google.com/machine-learning/crash-course/classification/roc-and-auc)). Basicamente, a curva ROC correlaciona a proporção de observações classificadas corretamente/incorretamente (erros do tipo I e II), dependendo do limiar utilizado para classificar um evento como positivo ou não. Foge do escopo desse post discutir o arcabouço teórico da curva ROC (certamente tema para um post separado).  
 
 O importante a se entender do gráfico abaixo é que, quanto mais próxima a curva é da diagonal tracejada do plot, pior é a perfomance do modelo, pois essa diagonal indica que a proporção de observações classificadas corretamente é igual à proporção de classificações incorretas (o que indica um modelo sem resolução): 
-
-
-```
-## For binary classification, the first factor level is assumed to be the event.
-## Use the argument `event_level = "second"` to alter this as needed.
-```
-
-```
-## 
-## Attaching package: 'yardstick'
-```
-
-```
-## The following objects are masked from 'package:caret':
-## 
-##     precision, recall, sensitivity, specificity
-```
-
-```
-## The following object is masked from 'package:readr':
-## 
-##     spec
-```
-
-```
-## Joining, by = c(".rownames", "TenYearCHD", "male", "age", "cigsPerDay", "prevalentStroke", "prevalentHyp", "totChol", "sysBP", "glucose", ".fitted", ".resid", ".std.resid", ".hat", ".sigma", ".cooksd", "cat")
-```
-
-```
-## Joining, by = c(".rownames", "TenYearCHD", "education", "currentSmoker", "BPMeds", "diabetes", "diaBP", "BMI", "heartRate", ".fitted", ".resid", ".std.resid", ".hat", ".sigma", ".cooksd", "cat")
-```
-
-```
-## Warning: The `yardstick.event_first` option has been deprecated as of yardstick 0.0.7 and will be completely ignored in a future version.
-## Instead, set the following argument directly in the metric function:
-## `options(yardstick.event_first = TRUE)`  -> `event_level = 'first'` (the default)
-## `options(yardstick.event_first = FALSE)` -> `event_level = 'second'`
-## This warning is displayed once per session.
-```
 
 <img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-11-1.png" width="672" />
 
@@ -463,7 +382,9 @@ Se olharmos a matriz de confusão do modelo `bad`:
 ```
 Vemos que a acurácia desse modelo é bem próximo à do modelo step, sendo de 84%.
 
-Isso aponta para a necessidade de ajustar o balanço de classes dos dados, para otimizá-los para uma análise preditiva. Existem [diversas estratégias](https://www.analyticsvidhya.com/blog/2016/03/practical-guide-deal-imbalanced-classification-problems/) para lidar com esse problema, mas como o objetivo aqui foi analisar os coeficientes, não será abordado.
+Isso aponta para a necessidade de ajustar o balanço de classes dos dados, para otimizá-los para uma análise preditiva. Existem [diversas estratégias](https://www.analyticsvidhya.com/blog/2016/03/practical-guide-deal-imbalanced-classification-problems/) para lidar com esse problema, mas como o objetivo aqui foi analisar os coeficientes, elas não serão abordadas. 
+
+Existe, entretanto, um parâmetro que entrega o problema: a acurácia balanceada (`balanced accuracy`). Esta, trata-se do valor de acurácia quando o balanço de classes é corrigido: em ambos casos ela é próxima de 50%, indicando o baixo poder preditivo do modelo.
 
 Ainda assim, é possível ver que, mesmo com o problema da acurácia, o modelo `step` teve uma perfomance um pouco melhor que o modelo `bad`. Isso pode ser conferido olhando outras métricas informadas nas matrizes, sintetizadas na tabela abaixo:
 
@@ -479,7 +400,7 @@ Ainda assim, é possível ver que, mesmo com o problema da acurácia, o modelo `
 
 A precisão mede a taxa de observações positivas classificadas corretamente e uma alta precisão indica uma baixa taxa de falsos positivos. A precisão do modelo `step` é relativamente alta. Em contrapartida, a precisão do modelo `bad` foi bem mais baixa. O Recall (sinônimo de sensitividade), foi baixo em ambos modelos, o que compromete o poder preditivo. Ainda, o valor de F1 para ambos modelos também fui muito baixo, reforçando que existe trabalho a ser feito para corrigir o desbalanço de classes.
 
-Além desse problema, mesmo que ele fosse resolvido, outra questão teria que ser abordada. Ainda que fosse alcançado um modelo com alta acurácia e precisão, a presença de falsos negativos poderia ser um problema. Em um estudo desse tipo, onde um falso negativo significa uma pessoa com potencial a desenvolver problemas cardíacos não sendo tratada para tal, é preferível que se tenha um menor poder preditivo geral, desde que o modelo minimize a presença de falsos negativos. O raciocínio é: melhor errar classificando pessoas que não precisam de tratamento como grupos de risco, do que negligenciar o tratamento à pessoas que precisam, por erros de classificação.
+Além desse problema, mesmo que ele fosse resolvido, outra questão teria que ser abordada. Ainda que fosse alcançado um modelo com alta acurácia e precisão, a presença de falsos negativos poderia ser um problema. Em um estudo desse tipo, onde um falso negativo significa uma pessoa com potencial de desenvolver problemas cardíacos não sendo tratada para tal, é preferível que se tenha um menor poder preditivo geral, desde que o modelo minimize a presença de falsos negativos. O raciocínio é: melhor errar classificando pessoas que não precisam de tratamento como grupos de risco, do que negligenciar o tratamento à pessoas que precisam, por erros de classificação.
 
 Foge também do escopo entrar nessa questão, mas isso poderia ser feito alterando o *threshold* utilizado no modelo para classificar um paciente: minimizando esse valor, também minimizamos a proporção de falsos negativos.
 
