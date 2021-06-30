@@ -1,7 +1,9 @@
 ---
 title: "Regressão Logística Binomial"
 excerpt: |
-  Variáveis relacionadas ao risco de se desenvolver doenças cardíacas.
+  Exercício aplicando stepwise regression usando dados de doenças cardíacas, em uma regressão
+  logística binomial. Aqui também discuto brevemente cruvas ROC, AUC, acurácia e sua relação
+  com o desbalanço de classes.
 author:
   - name: Lucas Moraes.
     url: https://lucasmoraes.org
