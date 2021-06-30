@@ -100,6 +100,7 @@ Indo direto ao ponto, quero plotar um gráfico de pontos usando essas duas vari�
 transit_cost %>% ggplot(aes(y=length,x=real_cost)) +
   geom_point()
 ```
+<br>
 Os outliers e as diferenças em ordens de grandeza das unidades distorcem bem a escala. Isso pode ser corrigido convertendo a escala para log:
 
 ```{r, echo=TRUE, message=FALSE}
@@ -119,7 +120,8 @@ transit_cost %>% ggplot(aes(y=length,x=real_cost)) + # plotando novamente
   scale_y_log10() + # eixo y em log
   scale_x_log10() # eixo x em log
 ```
-As cores sólidas nos pontos atrapalham a visualização de pontos sobrepostos. Adicionar um efeito de transparência resolve esse problema:
+<br>
+As cores sólidas atrapalham a visualização de pontos sobrepostos. Adicionar um efeito de transparência resolve esse problema:
 
 ```{r, echo=TRUE, message=FALSE}
 transit_cost %>% ggplot(aes(y=length,x=real_cost)) +
@@ -148,7 +150,7 @@ transit_cost %>% ggplot(aes(y=length,x=real_cost)) +
 ```
 # Mexendo nas cores
 
-Vou alterar agora o esquema de cores. Quero deixar o plano de fundo escuro e os pontos claros. A maior parte dos comandos que alteram esses atributos estão vinculadas à função `theme`, que além de alterar as cores, também pode ser usada para alterar as fontes e marcações dos eixos.
+Vou alterar agora o esquema de cores. Quero deixar o plano de fundo escuro e os pontos claros. A maior parte dos comandos que alteram esses atributos está vinculada à função `theme`, que além de alterar as cores, também pode ser usada para alterar as fontes e marcações dos eixos.
 
 Abaixo, altero a cor do grid:
 
@@ -195,6 +197,7 @@ transit_cost %>% ggplot(aes(y=length,x=real_cost)) +
         rect = element_rect(fill = "#343536", color = NA),
         plot.background = element_rect(color = NA)) # tirando a cor da borda 
 ```
+<br>
 As fontes do gráfico precisam de cores melhores agora. Os texto do gráfico (título, subtítulo e título dos eixos) e o texto das unidades dos eixos em si, são elementos diferentes. Vou definir ambos como branco, usando dois argumentos, `text` e `axis_text`:   
 
 ```{r, echo=TRUE, message=FALSE}
@@ -245,7 +248,7 @@ transit_cost %>% ggplot(aes(y=length,x=real_cost)) +
           subtitle = "Dados extraídos do tidy tuesday de 05/01/2020 e utilizado como\nmodelo para um exercício de customização de gráficos no ggplot2.\n\nCada ponto representa uma malha construída em alguma cidade no mundo.\n")
 ```
 
-E pronto! Está aí o gráfico. Lembrando, cada ponto representa uma malha em alguma localidade de alguma cidade de algum país. Então cada país está representado diversas vezes no gráfico, de acordo com a localidade da malha. Entretando, meu foco aqui não foi limpar os dados para análise, apenas utilizá-los para gerar o gráfico customizado.
+E pronto! Está aí o gráfico. Lembrando, cada ponto representa uma malha em alguma localidade, de alguma cidade, de algum país. Então cada país está representado diversas vezes no gráfico, de acordo com a localidade da malha. Entretando, meu foco aqui não foi limpar os dados para análise, apenas utilizá-los para gerar o gráfico customizado.
 
 
 

@@ -25,7 +25,7 @@ A partir dos dados da tabela, vou mostrar como cheguei no gráfico abaixo:
 ## 	Downloading file 1 of 1: `transit_cost.csv`
 ```
 
-<img src="/blog/2021-01-07-tidytuesday20210105/tidytuesday20210105_files/figure-html/unnamed-chunk-1-1.png" width="672" />
+<img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-1-1.png" width="672" />
 
 # Formatação dos dados
 
@@ -134,7 +134,8 @@ transit_cost %>% ggplot(aes(y=length,x=real_cost)) +
   geom_point()
 ```
 
-<img src="/blog/2021-01-07-tidytuesday20210105/tidytuesday20210105_files/figure-html/unnamed-chunk-6-1.png" width="672" />
+<img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-6-1.png" width="672" />
+<br>
 Os outliers e as diferenças em ordens de grandeza das unidades distorcem bem a escala. Isso pode ser corrigido convertendo a escala para log:
 
 
@@ -149,7 +150,7 @@ transit_cost %>% ggplot(aes(y=length,x=real_cost)) +
 ## Warning: Transformation introduced infinite values in continuous x-axis
 ```
 
-<img src="/blog/2021-01-07-tidytuesday20210105/tidytuesday20210105_files/figure-html/unnamed-chunk-7-1.png" width="672" />
+<img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-7-1.png" width="672" />
 Bem melhor! Existe um problema referente aos pontos que foram computados como `\(-Inf\)` e, por isso, vão sempre tender a 0 no eixo x. Isso ocorreu por causa da conversão para log. Isso poderia ser remediado adicionando um incremento irrisório nos valores apenas para que eles se diferenciassem de 0, mas aqui, em nome da objetividade, vou retirá-los:
 
 
@@ -163,8 +164,9 @@ transit_cost %>% ggplot(aes(y=length,x=real_cost)) + # plotando novamente
   scale_x_log10() # eixo x em log
 ```
 
-<img src="/blog/2021-01-07-tidytuesday20210105/tidytuesday20210105_files/figure-html/unnamed-chunk-8-1.png" width="672" />
-As cores sólidas nos pontos atrapalham a visualização de pontos sobrepostos. Adicionar um efeito de transparência resolve esse problema:
+<img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-8-1.png" width="672" />
+<br>
+As cores sólidas atrapalham a visualização de pontos sobrepostos. Adicionar um efeito de transparência resolve esse problema:
 
 
 ```r
@@ -174,7 +176,7 @@ transit_cost %>% ggplot(aes(y=length,x=real_cost)) +
   scale_x_log10() 
 ```
 
-<img src="/blog/2021-01-07-tidytuesday20210105/tidytuesday20210105_files/figure-html/unnamed-chunk-9-1.png" width="672" />
+<img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-9-1.png" width="672" />
 
 Em seguida, vou adicionar uma reta de regressão no gráfico. Isso pode ser feito usando a função `geom_smooth`, especificando o argumento `method` como `lm` (método linear):
 
@@ -187,7 +189,7 @@ transit_cost %>% ggplot(aes(y=length,x=real_cost)) +
   scale_x_log10() 
 ```
 
-<img src="/blog/2021-01-07-tidytuesday20210105/tidytuesday20210105_files/figure-html/unnamed-chunk-10-1.png" width="672" />
+<img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-10-1.png" width="672" />
 Não quero uma linha sólida e também não quero que o erro padrão esteja presente no gráfico. Vou alterar isso incluindo os argumentos `lty` (de *linetype*) e `se` (de *standard error*). Também quero alterar a cor da reta, o que é feito intuitivamente usando o argumento `color`:
 
 
@@ -199,10 +201,10 @@ transit_cost %>% ggplot(aes(y=length,x=real_cost)) +
   scale_x_log10() 
 ```
 
-<img src="/blog/2021-01-07-tidytuesday20210105/tidytuesday20210105_files/figure-html/unnamed-chunk-11-1.png" width="672" />
+<img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-11-1.png" width="672" />
 # Mexendo nas cores
 
-Vou alterar agora o esquema de cores. Quero deixar o plano de fundo escuro e os pontos claros. A maior parte dos comandos que alteram esses atributos estão vinculadas à função `theme`, que além de alterar as cores, também pode ser usada para alterar as fontes e marcações dos eixos.
+Vou alterar agora o esquema de cores. Quero deixar o plano de fundo escuro e os pontos claros. A maior parte dos comandos que alteram esses atributos está vinculada à função `theme`, que além de alterar as cores, também pode ser usada para alterar as fontes e marcações dos eixos.
 
 Abaixo, altero a cor do grid:
 
@@ -217,7 +219,7 @@ transit_cost %>% ggplot(aes(y=length,x=real_cost)) +
   theme(panel.background = element_rect(fill = "#343536")) # alterando a cor do grid
 ```
 
-<img src="/blog/2021-01-07-tidytuesday20210105/tidytuesday20210105_files/figure-html/unnamed-chunk-12-1.png" width="672" />
+<img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-12-1.png" width="672" />
 Obviamente, não posso manter os pontos pretos com essa cor de fundo. Vou inverter a cor deles então, deixando-os, brancos:
 
 
@@ -230,7 +232,7 @@ transit_cost %>% ggplot(aes(y=length,x=real_cost)) +
   theme(panel.background = element_rect(fill = "#343536"))
 ```
 
-<img src="/blog/2021-01-07-tidytuesday20210105/tidytuesday20210105_files/figure-html/unnamed-chunk-13-1.png" width="672" />
+<img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-13-1.png" width="672" />
 
 Eu quero **todo** gráfico escuro, não apenas o grid. Então vou incluir mais um argumento na função `theme` para dar conta disso:
 
@@ -245,7 +247,7 @@ transit_cost %>% ggplot(aes(y=length,x=real_cost)) +
         rect = element_rect(fill = "#343536", color = NA)) # cor na imagem toda
 ```
 
-<img src="/blog/2021-01-07-tidytuesday20210105/tidytuesday20210105_files/figure-html/unnamed-chunk-14-1.png" width="672" />
+<img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-14-1.png" width="672" />
 Ainda existe uma linha branca envolvendo todo plot, que está bem feia. De novo, vou mexer na função `theme`, dessa vez incluindo o argumento `plot.background`, definindo ele como `element_rect(color=NA)`, o que significa que a margem não vai ter cor nenhuma:
 
 
@@ -260,7 +262,8 @@ transit_cost %>% ggplot(aes(y=length,x=real_cost)) +
         plot.background = element_rect(color = NA)) # tirando a cor da borda 
 ```
 
-<img src="/blog/2021-01-07-tidytuesday20210105/tidytuesday20210105_files/figure-html/unnamed-chunk-15-1.png" width="672" />
+<img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-15-1.png" width="672" />
+<br>
 As fontes do gráfico precisam de cores melhores agora. Os texto do gráfico (título, subtítulo e título dos eixos) e o texto das unidades dos eixos em si, são elementos diferentes. Vou definir ambos como branco, usando dois argumentos, `text` e `axis_text`:   
 
 
@@ -277,7 +280,7 @@ transit_cost %>% ggplot(aes(y=length,x=real_cost)) +
         axis.text = element_text( color = "white")) # cor do conteúdo dos eixos em branco
 ```
 
-<img src="/blog/2021-01-07-tidytuesday20210105/tidytuesday20210105_files/figure-html/unnamed-chunk-16-1.png" width="672" />
+<img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-16-1.png" width="672" />
 # Formatando o texto
 
 Agora vou mexer na formatação do texto dos eixos, saindo da função `theme`. Primeiro, vou adicionar a notação de grandeza como "." no eixo x. Isso pode ser feito incluindo o argumento `labels = comma_format(big.mark = ".")` dentro da função `scale_x_log10`. Esse argumento não faz parte do `ggplot2`, ele vem do pacote `scales`:
@@ -301,7 +304,7 @@ transit_cost %>% ggplot(aes(y=length,x=real_cost)) +
 ## 'big.mark' and 'decimal.mark' are both '.', which could be confusing
 ```
 
-<img src="/blog/2021-01-07-tidytuesday20210105/tidytuesday20210105_files/figure-html/unnamed-chunk-17-1.png" width="672" />
+<img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-17-1.png" width="672" />
 
 Agora, para finalizar, vou adicionar um título, subtítulo e renomear o eixo y e eixo x:
 
@@ -328,9 +331,9 @@ transit_cost %>% ggplot(aes(y=length,x=real_cost)) +
 ## 'big.mark' and 'decimal.mark' are both '.', which could be confusing
 ```
 
-<img src="/blog/2021-01-07-tidytuesday20210105/tidytuesday20210105_files/figure-html/unnamed-chunk-18-1.png" width="672" />
+<img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-18-1.png" width="672" />
 
-E pronto! Está aí o gráfico. Lembrando, cada ponto representa uma malha em alguma localidade de alguma cidade de algum país. Então cada país está representado diversas vezes no gráfico, de acordo com a localidade da malha. Entretando, meu foco aqui não foi limpar os dados para análise, apenas utilizá-los para gerar o gráfico customizado.
+E pronto! Está aí o gráfico. Lembrando, cada ponto representa uma malha em alguma localidade, de alguma cidade, de algum país. Então cada país está representado diversas vezes no gráfico, de acordo com a localidade da malha. Entretando, meu foco aqui não foi limpar os dados para análise, apenas utilizá-los para gerar o gráfico customizado.
 
 
 

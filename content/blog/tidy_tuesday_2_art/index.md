@@ -26,44 +26,15 @@ text-align: justify}
 
 
 
-Post mostrando como criar um gráfico facetado, entre alguns recursos adicionais, a partir de dados do Tidy Tuesday da semana de 12-01-2012.
+Post mostrando como criar um gráfico facetado, entre alguns recursos adicionais, a partir de dados do Tidy Tuesday da semana de 12-01-2021.
 
 Como de praxe, o objetivo aqui é apenas fazer uso dos dados para criar uma visualização, explorando um pouco dos recursos do `ggplot2` e alguns pacotes acessórios.
 
-O dataset atual consistem em informações acerca de aproximadamente 70.000 obras de arte. Mais sobre o dataset pode ser conferido no [repositório dos dados](https://github.com/rfordatascience/tidytuesday/blob/master/data/2021/2021-01-12/readme.md).
+O dataset atual consiste em informações de cerca de 70.000 obras de arte. Mais sobre o dataset pode ser conferido no [repositório dos dados](https://github.com/rfordatascience/tidytuesday/blob/master/data/2021/2021-01-12/readme.md).
 
 Aqui, vou mostrar o passo-a-passo de como cheguei no gráfico abaixo:
 
 
-
-```
-## ── Attaching packages ─────────────────────────────────────── tidyverse 1.3.0 ──
-```
-
-```
-## ✓ ggplot2 3.3.3     ✓ purrr   0.3.4
-## ✓ tibble  3.1.2     ✓ dplyr   1.0.5
-## ✓ tidyr   1.1.3     ✓ stringr 1.4.0
-## ✓ readr   1.4.0     ✓ forcats 0.5.1
-```
-
-```
-## ── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──
-## x dplyr::filter() masks stats::filter()
-## x dplyr::lag()    masks stats::lag()
-```
-
-```
-## --- Compiling #TidyTuesday Information for 2021-01-12 ----
-```
-
-```
-## --- There are 2 files available ---
-```
-
-```
-## --- Starting Download ---
-```
 
 ```
 ## 
@@ -71,15 +42,11 @@ Aqui, vou mostrar o passo-a-passo de como cheguei no gráfico abaixo:
 ## 	Downloading file 2 of 2: `artwork.csv`
 ```
 
-```
-## --- Download complete ---
-```
-
 <img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-1-1.png" width="672" />
 
 # Extraindo os dados
 
-Primeiro passo é baixar os dados no repositório do Tidy Tuesday. O dataset dessa semana consiste em duas tabelas, `artwork` e `artists`, mas aqui vou usar apenas uma, a tabela `artwork`:
+O primeiro passo é baixar os dados no repositório do Tidy Tuesday. O dataset dessa semana consiste em duas tabelas, `artwork` e `artists`, mas aqui vou usar apenas uma, a tabela `artwork`:
 
 
 ```r
@@ -103,7 +70,7 @@ tuesdata <- tidytuesdayR::tt_load('2021-01-12')
 artwork <- tuesdata$artwork
 ```
 
-Estou interessado em duas colunas dessa tabela: a coluna `medium`, que classifica as obras de arte de acordo com a técnica utilizada, e a coluna `acquisitionYear`, que consiste no ano em que a obra foi adquirida no acervo:
+Estou interessado em duas colunas dessa tabela: a coluna `medium`, que classifica as obras de arte de acordo com a técnica utilizada e a coluna `acquisitionYear`, que consiste no ano em que a obra foi adquirida no acervo:
 
 
 ```r
@@ -191,7 +158,8 @@ artwork %>% filter(medium %in% slice_medium) %>%
 ```
 
 <img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-7-1.png" width="672" />
-Em seguida, vou alterar o tema e a paleta de cores. Para alterar as cores, estou usando a função `scale_fill_paletteer_d()`, que vai agir nas cores dos grupos determinados pelo argumento `fill` do argumento `aes` da função `ggplot`. Essa função vem no pacote `[paletteer](https://github.com/EmilHvitfeldt/paletteer)`, que compila muitas paletas de cores para gráficos, facilitando essa escolha. Algumas dessas paletas estão [listadas aqui](https://github.com/PMassicotte/paletteer_gallery)! Nesse caso usei a paleta `appletv` do conjunto `yarrr`. Também vou aproveitar para retirar a legenda desse gráfico, que é um tanto quanto redundante:
+<br>
+Em seguida, vou alterar o tema e a paleta de cores. Para alterar as cores, estou usando a função `scale_fill_paletteer_d()`, que vai agir nas cores dos grupos determinados pelo argumento `fill` do argumento `aes` da função `ggplot`. Essa função vem no pacote [paletteer](https://github.com/EmilHvitfeldt/paletteer), que compila muitas paletas de cores para gráficos, facilitando essa escolha. Algumas dessas paletas estão [listadas aqui](https://github.com/PMassicotte/paletteer_gallery)! Nesse caso usei a paleta `appletv` do conjunto `yarrr`. Também vou aproveitar para retirar a legenda desse gráfico, que é um tanto quanto redundante:
 
 
 
@@ -213,6 +181,7 @@ artwork %>% filter(medium %in% slice_medium) %>%
 ```
 
 <img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-8-1.png" width="672" />
+<br>
 Por último, vou ajeitar os textos dos eixos e o título:
 
 

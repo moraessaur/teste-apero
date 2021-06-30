@@ -26,16 +26,16 @@ text-align: justify}
 knitr::opts_chunk$set(echo = FALSE)
 ```
 
-Post mostrando como criar um gráfico facetado, entre alguns recursos adicionais, a partir de dados do Tidy Tuesday da semana de 12-01-2012.
+Post mostrando como criar um gráfico facetado, entre alguns recursos adicionais, a partir de dados do Tidy Tuesday da semana de 12-01-2021.
 
 Como de praxe, o objetivo aqui é apenas fazer uso dos dados para criar uma visualização, explorando um pouco dos recursos do `ggplot2` e alguns pacotes acessórios.
 
-O dataset atual consistem em informações acerca de aproximadamente 70.000 obras de arte. Mais sobre o dataset pode ser conferido no [repositório dos dados](https://github.com/rfordatascience/tidytuesday/blob/master/data/2021/2021-01-12/readme.md).
+O dataset atual consiste em informações de cerca de 70.000 obras de arte. Mais sobre o dataset pode ser conferido no [repositório dos dados](https://github.com/rfordatascience/tidytuesday/blob/master/data/2021/2021-01-12/readme.md).
 
 Aqui, vou mostrar o passo-a-passo de como cheguei no gráfico abaixo:
 
 
-```{r}
+```{r, message=FALSE}
 library(tidyverse)
 library(paletteer)
 
@@ -72,7 +72,7 @@ artwork %>% filter(medium %in% slice_medium) %>%
 
 # Extraindo os dados
 
-Primeiro passo é baixar os dados no repositório do Tidy Tuesday. O dataset dessa semana consiste em duas tabelas, `artwork` e `artists`, mas aqui vou usar apenas uma, a tabela `artwork`:
+O primeiro passo é baixar os dados no repositório do Tidy Tuesday. O dataset dessa semana consiste em duas tabelas, `artwork` e `artists`, mas aqui vou usar apenas uma, a tabela `artwork`:
 
 ```{r, echo=TRUE, message=FALSE}
 # carregando os pacotes
@@ -86,7 +86,7 @@ tuesdata <- tidytuesdayR::tt_load('2021-01-12')
 artwork <- tuesdata$artwork
 ```
 
-Estou interessado em duas colunas dessa tabela: a coluna `medium`, que classifica as obras de arte de acordo com a técnica utilizada, e a coluna `acquisitionYear`, que consiste no ano em que a obra foi adquirida no acervo:
+Estou interessado em duas colunas dessa tabela: a coluna `medium`, que classifica as obras de arte de acordo com a técnica utilizada e a coluna `acquisitionYear`, que consiste no ano em que a obra foi adquirida no acervo:
 
 ```{r, echo = TRUE}
 paged_table(  
@@ -154,7 +154,8 @@ artwork %>% filter(medium %in% slice_medium) %>%
     geom_density() + facet_wrap(~medium, 
                                 scales = 'free_y') # argumento para deixa a escala y livre
 ```
-Em seguida, vou alterar o tema e a paleta de cores. Para alterar as cores, estou usando a função `scale_fill_paletteer_d()`, que vai agir nas cores dos grupos determinados pelo argumento `fill` do argumento `aes` da função `ggplot`. Essa função vem no pacote `[paletteer](https://github.com/EmilHvitfeldt/paletteer)`, que compila muitas paletas de cores para gráficos, facilitando essa escolha. Algumas dessas paletas estão [listadas aqui](https://github.com/PMassicotte/paletteer_gallery)! Nesse caso usei a paleta `appletv` do conjunto `yarrr`. Também vou aproveitar para retirar a legenda desse gráfico, que é um tanto quanto redundante:
+<br>
+Em seguida, vou alterar o tema e a paleta de cores. Para alterar as cores, estou usando a função `scale_fill_paletteer_d()`, que vai agir nas cores dos grupos determinados pelo argumento `fill` do argumento `aes` da função `ggplot`. Essa função vem no pacote [paletteer](https://github.com/EmilHvitfeldt/paletteer), que compila muitas paletas de cores para gráficos, facilitando essa escolha. Algumas dessas paletas estão [listadas aqui](https://github.com/PMassicotte/paletteer_gallery)! Nesse caso usei a paleta `appletv` do conjunto `yarrr`. Também vou aproveitar para retirar a legenda desse gráfico, que é um tanto quanto redundante:
 
 
 ```{r, echo = TRUE}
@@ -173,6 +174,7 @@ artwork %>% filter(medium %in% slice_medium) %>%
     theme(legend.position = "none") + # eliminando a legenda
     scale_fill_paletteer_d("yarrr::appletv") # atribuindo paleta
 ```
+<br>
 Por último, vou ajeitar os textos dos eixos e o título:
 
 ```{r, echo = TRUE}
