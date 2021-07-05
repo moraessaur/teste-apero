@@ -1,4 +1,4 @@
-baseURL = "/"
+baseURL = "https://www.lucasmoraes.org"
 theme = "hugo-apero"
 languageCode = "en"
 title = "Site pessoal Lucas Moraes. Data Science. Biology."
