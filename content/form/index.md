@@ -1,8 +1,8 @@
 ---
 title: Contato
 name: Me contacte
-description: "Quer conversar comigo sobre algum projeto, oportunidade, consultoria ou apenas sobre ciência de dados?
-Só inserir as informações ao lado que já recebo direto no email."
+description: "Meu formspree só está funcionando no contato do [meu site em inglês](https://lucasmoraes.io/contact/). Porque? Não sei, mas 
+por enquanto acho melhor preencher por lá ou enviar um email para moraessaur@gmail.com :)"
 date: 2019-02-25T13:38:41-06:00
 draft: false
 url: contact

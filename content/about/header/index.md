@@ -14,7 +14,10 @@ programação (principalmente em R).
 
 Também trabalhei no [Centro Nacional de Conservação da Flora do Brasil](http://www.cncflora.jbrj.gov.br/portal), no Jardim Botânico do Rio de Janeiro. Lá, além de ser analista ambiental, também fui analista de dados, usando R para automatizar processos, fazer análises estatísticas e responder perguntas em geral, atividade que passou a ser integral em minha rotina. Esse período foi de valioso aprendizado, uma vez que apliquei meu conhecimento em pesquisas mais voltadas a políticas públicas, lidando com uma série de dados de origens distintas e um contexto diverso, fora de minha "zona de conforto".
 
-A valorização do meu trabalho como cientista de dados me levou a prestar consultorias em tempo integral, ao passo que me capacitava em ferramentas com maior demanda no mercado, onde atuo no momento.
+A valorização do meu trabalho como cientista de dados me levou a prestar consultorias em tempo integral, ao passo que me capacitava em ferramentas com maior demanda no mercado. 
+
+Atualmente trabalho na melhor envio, onde estou envolvido com (mas não só) projetos relacionados à clusterização/segmentação de clientes e
+melhoramento de métricas ligadas à retenção de clientes.
 
 Acredito que a tecnologia é fundamental na tomada de boas decisões e para agilizar a resolução
 de problemas em amplo espectro (locais, globais, de pequeno ou grande porte). Também prezo pela importância da boa comunicação, tanto de dados quanto de informações científicas. Além disso, vejo de maneira igualmente importante a transparência, robustez e reprodutibilidade de análises, como é de praxe na boa ciência.
