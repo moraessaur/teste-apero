@@ -23,51 +23,70 @@ text-align: justify}
 knitr::opts_chunk$set(echo = FALSE)
 ```
 
-Para fazer essa análise, vou usar o dataset [`Fish`](https://www.kaggle.com/aungpyaeap/fish-market) quem contém diferentes medidas de peixes registrados em um mercado. Versões com código podem ser conferidas no meu [Kaggle](https://www.kaggle.com/moraessaur/fish-market-simple-linear-regression) (em inglês) ou nas minhas [Github pages](https://moraessaur.github.io/fish_market/).
+Esta é uma pequena análise de regressão linear usando R. Meu objetivo aqui foi revisitar alguns conceitos, criar algumas funções e visualizar alguns dados referentes ao tema.
 
-Meu objetivo aqui vai ser escolher uma variável de resposta e a melhor variável que explique seu comportamento.
+Vou usar o dataset [`Fish`](https://www.kaggle.com/aungpyaeap/fish-market) quem contém diferentes medidas corporais de peixes registrados em um mercado. Este foi retirado do kaggle e armazenado no meu dropbox, para posteridade. Todo código utilizado para gerar essa análise está disponível no [repo do projeto](https://github.com/moraessaur/fish_market), em meu github pessoal.
 
-Primeiro vou dar uma olhada no dataset:
+Antes, entretanto, de prosseguir, existe uma pergunta fundamental a ser respondida: porque e quando usar uma regressão linear? A grosso modo, ela pode ser utilizada para estimar um determinado valor (um valor esperado), com base em outro. Nesse contexto, assume-se que a relação entre estes dados é uma função linear.
 
-```{r, message=FALSE}
+# Explorando o *dataset* e suas variáveis
+***
+
+O primeiro passo, como sempre, é se familiarizar com o dataset e carregar os pacotes que vou utilizar:
+
+```{r}
+# pacotes utilizados pontualmente deveriam entrar como ::
+
 library(rmarkdown)
 library(tidyverse) 
 library(broom)
 library(car)
 library(ggExtra)
-library(plotly)
+library(paletteer) # pacote com paletas de cores
 
 paged_table( 
 fish <- read_csv("https://www.dropbox.com/s/n45vml0ayoq0omx/fish.csv?dl=1")
 )
 ```
-Os nomes de coluna não são muito intuitivos, então vou descrever cada um:
+
+Os nomes das colunas não são lá muito intuitivos, por isso os descrevo abaixo:
 
 1. `Species`: nome da espécie mensurada.
-2. `Weight`: peso do peixe em gramas.
+2. `Weight`: Peso do peixe em gramas.
 3. `Length1`: comprimento vertical em cm.
 4. `Length2`: comprimento diagonal em cm.
 5. `Length3`: comprimento cruzado em cm.
 6. `Height`: altura em cm.
 7. `Width`: largura diagonal em cm.
 
-Vou definir como minha variável de resposta o peso do peixe, esse é o valor que quero prever em função das demais variáveis explicativas. Para dar início à análise, então, vou plotar a correlação de minha variável de resposta com todas as demais variáveis explicativas e calcular o $R^2$ de cada caso.
+```{r}
+# convertendo a coluna species para fator
+# nao compulsório, mas boa prática
 
-Para plotar tudo de uma vez, alterei um pouco a tabela e criei um grid:
+fish <- fish %>% mutate(Species=as.factor(Species))
+
+```
+
+
+Meu objetivo aqui vai ser usar o **peso** como variável de resposta ou seja, quero usar alguma(s) das demais variáveis para prever qual vai ser o peso do peixe, o que, por sua vez, vai indicar (a grosso modo) seu porte.
+
+Como pontapé inicial, vou plotar o peso em função de cada uma das demais variáveis, isso vai me dar uma visão geral dessas correlações:
+
+Para plotar tudo de uma vez alterei um pouco a tabela e criei um grid:
 
 ```{r}
 fish %>% # alterando a disposição de colunas para a plotagem
   pivot_longer(cols=names(fish)[3:length(names(fish))],names_to = "explanatory") %>% 
   # plotagem
-  ggplot(aes(y=Weight,x=value)) + geom_point() + geom_smooth(method="lm",linetype=2) +
+  ggplot(aes(y=Weight,x=value)) + geom_point() +   geom_smooth(method="lm",linetype=2) +
   theme_bw() +
   ggtitle("Peso vs. altura, medidas de comprimento e largura.") +
-  ylab("Peso - variável de resposta") +
-  xlab("Variáveis explanatórias, em escala livre.") +
+  ylab("Peso (g) - variável de resposta") +
+  xlab("Variáveis descritivas, em escala livre.") +
   facet_wrap(~explanatory, scales="free")
 ```
-<br>
-Dá para perceber que a correlação do peso com as demais medidas é positiva em todos casos, em alguns mais e outros menos, pela inclinação das retas de regressão (tracejadas azuis). Entretanto, fica difícil entender a robustez dos modelos (na forma de $R^2$) visualmente. Portanto, vou computar esses valores em uma tabela e ordenar em ordem decrescente:
+
+É possível perceber que a correlação do peso com as demais medidas é positiva em todos casos, pela inclinação das retas de regressão (tracejadas azuis), em alguns mais e outros menos. Entretanto, fica difícil entender a robustez dos modelos visualmente. Sendo assim, vou computar esses valores, na forma de R2, em uma tabela e ordenar de maneira decrescente:
 
 ```{r}
 # função para extrair o r2 dos modelos
@@ -78,36 +97,34 @@ rsquared_mod <- function(x) {
     )[["r.squared"]]
   )
 }
-
-# lista de variaveis explanatorias que vou cruzar com o peso
+# lista de variaveis descritivas que vou cruzar com o peso
 explanatory <- names(fish)[3:length(names(fish))]
-
 # tabela com valores de r2 dos modelos em ordem decrescente
-
 tibble(variables=explanatory,r_squared=unlist(map(explanatory,rsquared_mod))) %>% 
     arrange(desc(r_squared))
 ```
 
-Essa tabela me dá os valores de $R^2$ para cada modelo de peso em função a cada uma das demais variáveis, de maneira independente.
 
-As três medidas de comprimento são as que melhor descrevem o comportamento do peso. A altura é a medida menos robusta e a largura fica no meio do caminho. Os valores altos dos modelos que levam em consideração os diferentes tipos de comprimento apontam para uma possível colinearidade entre essas variáveis. Isso significa que, em um modelo multivariado, essas medidas provavelmente seriam redundantes.
+Essa tabela me dá os valores de $R^2$ entre o peso e cada uma das outras variáveis independentemente (não sendo covariáveis) para cada modelo simples . 
 
-Vou desenvolver isso um pouco mais a frente, mas por hora, como vou fazer uma regressão simples, vou usar a variável `Length3` como explicativa, dado que ela resultou no maior valor de $R^2$.
+Seguindo por essa lógica, as três medidas de comprimento são as que melhor descrevem o comportamento do peso. Ainda, a natureza semelhante dessas medidas nos leva a crer que possivelmente existe uma colinearidade nessa relação.
+
+Vou desenvolver isso um pouco mais a frente, mas por hora, como vou fazer uma regressão simples, vou usar a variável `Length3` como explanatória, dado que ela resultou no maior valor de $R^2$.
 
 Abaixo, os coeficientes do modelo:
 
-```{r,preview=TRUE}
+```{r}
 lm(Weight~Length3,data=fish)
 ```
 
 Segundo esse modelo, existe um incremento de cerca de 28 gramas no peso de um peixe conforme a largura cruzada do peixe aumenta em uma unidade, ou seja, 1 centímetro.
 
-Abaixo, vou plotar o gráfico da regressão, já atribuindo cores diferentes aos pontos para as diferentes espécies da amostra:
+Abaixo, vou plotar o gráfico da regressão, já atribuindo cores diferentes aos pontos referenes a cada espécies da amostra (estou levando todas em consideração):
 
+# A qualidade da regressão
+***
 
-```{r,preview=TRUE}
-library(paletteer) # pacote com paletas de cores
-
+```{r}
 fish %>% ggplot(aes(y=Weight,x=Length3)) + 
   geom_point(alpha=0.7,aes(color=Species)) + 
   geom_smooth(method="lm", linetype=2) +
@@ -120,7 +137,7 @@ fish %>% ggplot(aes(y=Weight,x=Length3)) +
   theme(plot.title = element_text(size = 10))
 ```
 
-Um fator interessante de se notar, é a provável alta influência dos pontos associados à espécie Pike (em roxo), na inclinação e erro associado à reta, devido ao alto valor tanto de peso quanto de comprimento cruzado de alguns de seus pontos. Essa espécie provavelmente tem maiores valores, em média, de distância de cook para suas observações, o que vai influenciar no comportamento da reta. Podemos checar isso sumarizando o modelo e esses valores, por espécie:
+Um fator interessante de se notar é a provável alta influência dos pontos associados à espécie Pike (em roxo), na inclinação e erro associado da reta, devido ao alto valor tanto de peso quanto de comprimento cruzado de alguns de seus pontos. Essa espécie provavelmente tem maiores valores, em média, de distância de cook para suas observações, o que vai influenciar no comportamento da reta. Podemos checar isso sumarizando o modelo e esses valores, por espécie:
 
 
 ```{r}
@@ -130,10 +147,11 @@ augment(mod,data=fish) %>%
   group_by(Species) %>% summarise(mean_cooksd=mean(.cooksd)) %>% 
   arrange(desc(mean_cooksd))
 ```
+A distância de Cook mede a influência das observações na inclinação e erro associado à reta de regressão, ou, seja, a influência destes nos valores ajustados: quanto maior esse valor, mais a inclinação da reta e seu erro está sendo definido por essas observações.
 
-Como previsto, a espécie Pike de fato tem a maior média para os valores de distância de cook associados seus pontos, seguida pela espécie Smelt (verde escuro), que no gráfico tem uma concentração de pontos próximos de zero. Esses pontos, em ambas espécies, se distanciam bastante da reta de regressão, explicando o comportamento das médias de distância de cooks associadas a elas.
+Como previsto, a espécie Pike de fato tem a maior média para os valores de distância de Cook associada a seus pontos, seguida pela espécie Smelt (verde escuro), que no gráfico tem uma concentração de pontos, relativamente alta, próximos de zero. Esses pontos, em ambas espécies, se distanciam bastante da reta de regressão, explicando o comportamento das médias de distância de Cook associadas a elas.
 
-Vou checar mais a fundo a influência que estas espécies tem na reta e no valor de $R^2$.
+Vou checar mais a fundo a influência destas espécies na reta e no valor de $R^2$.
 
 Lembrando que o modelo tem $R^2$ de 0.85, vou verificar qual valor que $R^2$ assume retirando essas espécies dele:
 
@@ -188,7 +206,7 @@ fish %>% ggplot(aes(y=Weight,x=Length3)) + geom_point() + geom_smooth(method="lm
   facet_wrap(~Species)
 ```
 
-A espécie Pike é a única com valores de peso maiores que 1500. Já a espécie Smelt tem **apenas** valores próximos de zero, reforçando um pouco da influência destas na qualidade da regressão. Essa informação é redundante com o gráfico onde os pontos foram pintados de acordo com as espécies de referência, mas é uma maneira distinta de enxergar essa questão.
+A espécie Pike é a única com valores de peso maiores que 1500. Já a espécie Smelt tem **apenas** valores próximos de zero, reforçando um pouco da influência destas na qualidade da regressão. Essa informação é redundante com o gráfico onde os pontos foram pintados de acordo com as espécies de referência, mas é uma maneira distinta interessante de enxergar esse comportamento.
 
 Esse tipo de fator levanta a questão: quais espécies escolher para estabelecer um modelo geral? Uma maneira de fazer isso seria calculando o $R^2$ associado ao modelo escolhido **por espécie**, mas também indicando o número de observações por espécie que existe nos dados:
 
@@ -203,7 +221,7 @@ rsquared_mod <- function(x,data) {
   )
 }
 
-# lista de vars explanatorias
+# lista de vars descritivas
 explanatory <- names(fish)[3:length(names(fish))]
 
 # tabela com valores de r2 dos modelos
@@ -213,7 +231,7 @@ tabela_r <- tibble(variables=explanatory,r_squared=unlist(map(explanatory,rsquar
 
 tabela_r %>% arrange(desc(r_squared))
 
-miau <- function(sp){
+temp <- function(sp){
   data <- fish %>% filter(Species==sp)
   return( 
   tabela_r <- tibble(Species=rep(sp,5),
@@ -222,12 +240,12 @@ miau <- function(sp){
   )
 }
 
-auau <- map(unique(fish$Species),miau)
+temp2 <- map(unique(fish$Species),temp)
 
-moo <- do.call("rbind",auau) 
+temp3 <- do.call("rbind",temp2) 
 
 left_join( 
-moo %>% filter(variables=="Length3") %>% arrange(desc(r_squared)),
+temp3 %>% filter(variables=="Length3") %>% arrange(desc(r_squared)),
 fish %>% group_by(Species) %>% summarise(n=n()),
 by="Species"
 )
@@ -251,7 +269,7 @@ rsquared_mod <- function(x) {
   )
 }
 
-# lista de vars explanatorias
+# lista de vars descritivas
 explanatory <- names(fish)[3:length(names(fish))]
 
 # tabela com valores de r2 dos modelos
@@ -262,7 +280,7 @@ tabela_r <- tibble(variables=explanatory,r_squared=unlist(map(explanatory,rsquar
 tabela_r %>% arrange(desc(r_squared))
 ```
 
-Esse comportamento pode ser um indicativo de colinearidade, o que faria sentido dada a natureza similar dessas medidas, em termos de proporção. Isso pode ser conferido computando os fatores de inflação de variância (vif) para cada variável, em um modelo que leva em conta todas variáveis:
+Esse comportamento pode ser um indicativo de colinearidade, o que faria sentido dada a natureza similar dessas medidas, em termos de proporção. Isso pode ser conferido computando os fatores de inflação de variância (Vif) para cada variável, em um modelo que leva em conta todas variáveis:
 
 ```{r}
 library(car)
@@ -273,28 +291,45 @@ fish %>%
   vif()
 ```
 
-Os altos valores de VIF para as medidas de comprimento indicam que essas variáveis são, de fato, redundantes para o modelo, não fazendo diferença qual é utilizada: ambas tem boa perfomance para explicar os valores de peso.
+Os altos valores de VIF para as medidas de comprimento indicam que essas variáveis são, de fato, redundantes para o modelo, não fazendo diferença qual é utilizada: ambas tem boa perfomance para explicar os valores de peso. Explicando superficialmente, o Vif indica a severidade da colinearidade de variáveis.
 
-Esse comportamento pode ser visualizado se plotarmos, por exemplo, o peso em função de dois comprimentos quaisquer. Infelizmente, o gráfico interativo não se dá muito bem com o `distill` (que uso para publicar esses posts), então apenas a imagens estática está disponível abaixo:
+Esse comportamento pode ser visualizado se plotarmos, por exemplo, o peso em função de dois comprimentos quaisquer:
 
-![](https://www.dropbox.com/s/gno8w8jvorggczk/regression_plane.png?dl=1)
+```{r}
+library(plotly)
 
-Felizmente, o gráfico interativo na íntegra pode ser acessado nas [Github pages](https://moraessaur.github.io/fish_market/) ou [Kaggle](https://www.kaggle.com/moraessaur/fish-market-simple-linear-regression) dessa análise. O que ele mostra é que ambas variáveis de comprimento tem valores muito próximos em todas observações, por isso os pontos se comportam de maneira similar a uma reta, mesmo tendo três dimensões. A colinearidade das variáveis também é reforçada pela alta densidade dos valores de peso no plano: quando os valores de comprimento são altos, independente de qual está sendo levado em consideração, o valor do peso previsto é alto.
+temp <- fish
+
+temp2 <- lm(Weight~Length3+Length1, data=temp)
+
+p <- plot_ly(data = temp, z = ~Weight, x = ~Length3, y = ~Length1, 
+             opacity = 0.6, colorbar = list(title = "Peso previsto")) %>%
+  add_markers()
+
+cf.mod <- coef(temp2)
+
+
+x1.seq <- seq(min(temp$Length3),max(temp$Length3),length.out=1000)
+x2.seq <- seq(min(temp$Length1),max(temp$Length1),length.out=1000)
+
+z <- t(outer(x1.seq, x2.seq, function(x,y) cf.mod[1]+cf.mod[2]*x+cf.mod[3]*y))
+
+p %>% # da para eu criar uma escala personalizada
+  add_surface(x = ~x1.seq, y = ~x2.seq, z = ~z, 
+              showscale = TRUE,colorscale="Viridis") %>% 
+  layout(scene = list(xaxis = list(title = "Comprimento cruzado (cm)"), 
+                      yaxis = list(title = "Comprimento vertical (cm)"),
+                      zaxis = list(title = "Peso (g)")))
+```
+
+Os pontos se dispersam muito pouco, o que indica sobreposição dos mesmos e sua redundância. Caso essa colinearidade não existisse, não seria esperada uma "quase reta" dentro de um espaço tridimensional.
 
 # Conclusões
 ***
 
-No geral, a primeira conclusão que pode ser tirada da análise, é que o comprimento é a medida que melhor descreve o peso dos peixes, independente de qual é utilizado, uma vez que as medidas de comprimento são colineares.
+No geral, a primeira conclusão que pode ser tirada da análise, é que o comprimento é a medida que melhor descreve o peso dos peixes, independente de qual é utilizado, uma vez que as medidas de comprimento são colineares. Além disso, é uma medida que por si parece ser um bom preditor do peso dos peixes.
 
 Algumas observações, relativas a determinadas espécies de peixes, representam pontos aberrantes e comprometem a qualidade da regressão, como foi visto quando computando valores de distância de cook. Além disso, a quantidade de observações por espécie de peixe varia bastante, com diversas espécies com número baixo de observações, fator que deve ser levado em consideração na implementação do modelo.
-
-
-
-
-
-
-
-
 
 
 
