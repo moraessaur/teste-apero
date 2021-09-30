@@ -75,7 +75,7 @@ Destes, selecionei as variáveis abaixo:
 
 Essas informações foram todas compiladas na tabela abaixo:
 
-```{r, message=FALSE,warning=FALSE,echo=FALSE, message=FALSE}
+```{r, message=FALSE,warning=FALSE,echo=FALSE, message=FALSE, results='hide'}
 library(tidyverse)
 library(clustMixType)
 library(quickds)
