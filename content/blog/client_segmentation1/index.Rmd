@@ -1,0 +1,302 @@
+---
+title: "Segmentação de dados - Parte 1"
+excerpt: |
+  Primeiro post de uma série mostrando como aplicar o algoritmo não supervisionado K-prototypes, para segmentar dados de diversos tipos.
+author:
+  - name: Lucas Moraes.
+    url: https://lucasmoraes.org
+date: 12-22-2020
+categories:
+  - k-prototypes
+  - segmentation
+  - unsupervised learning
+output:
+  distill::distill_article:
+    toc: true
+    self_contained: false
+---
+
+<style>
+body {
+text-align: justify}
+</style>
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+Neste post, irei utilizar um algoritmo não supervisionado para classificar clientes em diferentes grupos. 
+
+A ideia básica é mostrar um passo-a-passo de como segmentar clientes a partir de um dataset misto e como os resultados podem ser visualizados. Além disso, também vou mostrar como implementar o modelo em diferentes contextos temporais, entendendo como os resultados podem mudar ao longo do tempo. 
+
+Este será o primeiro de uma série de posts, cada um tratando de um desses assuntos, uma vez que é muita coisa para um post só!
+
+# O modelo: K-prototypes
+***
+
+Existem diversas maneiras de fazer uma clusterização: podemos usar uma clusterização hierárquica, podemos usar o famoso k-means ou [ainda diversos outros algoritmos]().
+
+Muitas vezes, porém, existem dois gargalos que podem limitar nossas análises no "mundo real": **performance** e **heterogeinidade de variáveis**. 
+
+Quando falo de perfomance, falo de "memória" mesmo, do tempo que leva para a análise rodar (quando roda). Quando falo de heterogeinidade, falo de um dataset misto, que contém tanto variáveis contínuas/numéricas como variáveis discretas (numéricas ou não).
+
+Nesse contexto, existe um algoritmo que funciona muito bem: o k-prototypes. Este, trata-se de uma espécie de junção dos famosos k-means e k-modes. Basicamente o que acontece é que nele, das variáveis contínuas são extraídas as médias (como no k-means) e das discretas são extraídas as modas (como no k-modes). Além disso, este é um algoritmo de alta performance, resolvendo os dois problemas citados anteriormente.
+
+Em R, este pode ser implementado utilizando o pacote [`{clustMixType}`](https://cran.r-project.org/web/packages/clustMixType/index.html), que, por sinal, possui um excelente [paper de referência](https://svn.r-project.org/Rjournal/trunk/html/_site/archive/2018/RJ-2018-048/RJ-2018-048.pdf), explicando o funcionamento/funcionalidades do mesmo.
+
+# Tema da análise e limpeza do dataset
+
+Nesta série de posts, vou trabalhar com dados de vendedores de e-commerce, utilizando dados da O-list, [disponíveis no Kaggle](https://www.kaggle.com/olistbr/brazilian-ecommerce)!
+
+Minha ideia é simples: quero segmentar esse dataset em grupos, que se assemelham/diferenciam em relação ao comportamento de suas variáveis. Esta é uma análise bem comum em empreendimentos que lidam com clientes, pois é natural que você queira entender como que seus clientes se segmentam.
+
+Ainda assim, é importante destacar que esta ferramenta poderia ser utilizada em uma série de contextos: análisando fenômenos climáticos, espécies ou ainda dados financeiros.
+
+## Selecionando as variáveis
+***
+
+Existe uma quantidade gigantesca de informações que podem ser utilizadas na análise, uma vez que o dataset disponível é muito extenso. Vou focar em alguns dados em particular, mas é possível [acessar uma explicação mais detalhada do dataset na página do Kaggle](https://www.kaggle.com/olistbr/brazilian-ecommerce).
+
+No dataset, existem informações tanto dos vendedores, quanto dos compradores de produtos, aqui vou focar em segmentar os vendedores e entender quais são as características que os une ou separa.
+
+Destes, selecionei as variáveis abaixo:
+
+* `seller_id`: identificador dos vendedores. Não será utilizada na clusterização em si, mas em visualizações posteriores.
+* `payment_type`: tipo de pagamento mais frequente feito nas vendas.
+* `product_category_name`: categoria do produto mais vendido.
+* `top_review_score`: nota mais frequente dada às revisões do vendedor (estrelas).
+* `total_orders`: total de vendas.
+* `mean_price`: preço médio dos produtos vendidos.
+* `mean_freight_value`: preço médio do frete das vendas.
+* `mean_payment_value`: preço médio total (produto + frete).
+* `birthdate`: data de nascimento do vendedor (valor simulado).
+* `lifetime`: tempo de vida do e-commerce do vendedor (valor simulado).
+* `seller_state`: estado de origem do vendedor.
+
+Essas informações foram todas compiladas na tabela abaixo:
+
+```{r, message=FALSE,warning=FALSE,echo=FALSE}
+library(tidyverse)
+library(clustMixType)
+library(quickds)
+library(lubridate)
+library(gower)
+library(cluster)
+
+# dados dos vendedores
+seller_data <- # dados geograficos dos vendedores
+  read_csv("https://www.dropbox.com/s/yg5yvlevoqk8dvg/olist_sellers_dataset.csv?dl=1")
+
+orders_data <- # dados de preço e valor de frete das vendas
+  read_csv("https://www.dropbox.com/s/ag7ucj2hha21wum/olist_order_items_dataset.csv?dl=1")
+
+
+payments_data <- # dados de pagamento
+  read_csv("https://www.dropbox.com/s/d85igzf3b485gq9/olist_order_payments_dataset.csv?dl=1")
+
+
+review_data <- # dados de revisões
+  read_csv("https://www.dropbox.com/s/u5s7trbgo65m5m3/olist_order_reviews_dataset.csv?dl=1")
+
+
+
+orders_metadata <- # dados de fluxo das vendas
+  read_csv("https://www.dropbox.com/s/4mzhcseoau0pdv3/olist_orders_dataset.csv?dl=1")
+
+
+
+product_data <- # dados dos produtos enviados
+  read_csv("https://www.dropbox.com/s/gfbiq2x6gy0l61x/olist_products_dataset.csv?dl=1")
+
+# criar primeiro tabela com dados que serão sumarizados
+  # não inclui as informações particulares de cada user (que são únicas)
+
+dataset_raw <- 
+left_join( 
+orders_data %>% select(seller_id,
+                   order_id,
+                   product_id,
+                   price,
+                   freight_value)
+,
+  payments_data %>% select(order_id,payment_type,payment_value)
+) %>% left_join(
+  .,
+  review_data %>% select(order_id,review_score)
+) %>% 
+  left_join(
+    .,
+    orders_metadata %>% select(order_id,
+                       order_status,
+                       order_approved_at)
+  ) %>% left_join(
+    product_data %>% select(product_id,product_category_name)
+  ) 
+
+# vou considerar apenas as orders entregues
+
+dataset_raw <- dataset_raw %>% filter(order_status=="delivered")
+
+# abaixo vou sumarizar os dados, por seller_id
+
+# pagamento mais frequente por seller
+
+seller_payments <- 
+dataset_raw %>% 
+  group_by(seller_id,payment_type) %>%
+  count(payment_type) %>%
+  group_by(seller_id) %>% 
+  slice_max(n) %>% 
+  select(seller_id,payment_type)
+
+seller_payments[['payment_type']] <- 
+  replace_na(seller_payments$payment_type,"indefinido")
+
+# produto mais vendido por seller
+
+seller_products <- 
+  dataset_raw %>% 
+  group_by(seller_id,product_category_name) %>%
+  count(product_category_name) %>%
+  group_by(seller_id) %>% 
+  slice_max(n) %>% 
+  select(seller_id,product_category_name) 
+
+seller_products[['product_category_name']] <- 
+  replace_na(seller_products$product_category_name,"indefinido")
+
+# score mais frequente das reviews
+
+seller_review_score <- 
+  dataset_raw %>% 
+  mutate(review_score=as.character(review_score)) %>% 
+  group_by(seller_id,review_score) %>%
+  count(review_score) %>%
+  group_by(seller_id) %>% 
+  slice_max(n) %>% 
+  select(seller_id,review_score) 
+
+seller_review_score[['top_review_score']] <- 
+  replace_na(seller_review_score$review_score,"indefinido")
+
+seller_review_score <- 
+  seller_review_score %>% select(-review_score)
+
+# sumarização de valores contínuos
+
+dataset_summary <- 
+dataset_raw %>% 
+  group_by(seller_id) %>% 
+  summarise(total_orders=n(),
+            mean_price=mean(price,na.rm=T),
+            mean_freight_value=mean(freight_value,na.rm=T),
+            mean_payment_value=mean(payment_value,na.rm=T))
+
+# vou carregar o plyr para fazer um join_all nas tabelas
+
+library(plyr)
+
+dataset_clean <- 
+  join_all(list(seller_payments,seller_products,
+           seller_review_score, dataset_summary),
+           by = "seller_id")
+
+# vou descarregar o pacote pois ele conflita bastante com o dplyr
+
+detach("package:plyr",unload = T)
+
+# abaixo vou duas variáveis dummy para enriquecer a análise
+  # usei set.seed para travar a randomização
+
+# datas (que serão usadas para calcular as datas de nascimento)
+
+datas <- seq(dmy("01-01-1950"),dmy("01-01-2020"),by=1)
+set.seed(123)
+vetor_datas <- sample(datas,size=dim(dataset_clean)[1],replace=T)
+
+# tempos de vida na plataforma
+
+set.seed(123)
+lifetimes <- sample(seq(1:3650),size=dim(dataset_clean)[1],replace=T)
+
+# agora vou incluir esses dados nas tabelas
+
+dataset_clean[['birthdate']] <- vetor_datas
+dataset_clean[['lifetime']] <- lifetimes
+
+# aqui vou fazer mais um join para inluir o estado de origem de cada seller
+
+dataset_clean <- 
+  left_join(dataset_clean,seller_data %>% select(seller_id,seller_state)) %>% 
+  na.omit() # tem apenas 10 NA
+
+# agora o dataset está pronto, mas preciso formatar os tipos para rodar a clusterização
+  
+dataset_clustering <- 
+  dataset_clean %>% 
+  ungroup() %>% 
+  select(-seller_id) %>% # esse dado não será usado na clusterização
+  mutate(idade=2021-year(birthdate)) %>% # calculando a idade
+  select(-birthdate) %>% # tirando essa coluna que ficou obsoleta
+  mutate_if(is.character, as.factor) %>% # alterando o que é string para fator
+  mutate(top_review_score=as.factor(top_review_score)) # review também se comporta como fator
+
+# agora com o dataset pronto posso rodar o elbow
+  
+
+elbow_df <- elbow_method_df(dataset_clustering)
+
+elbow_plot <- elbow_method_plot(elbow_df)
+
+```
+
+```{r, echo=FALSE}
+rmarkdown::paged_table(dataset_clean)
+```
+
+Para chegar nesse dataset, uma série de operações e sumarizações foram feitas nas tabelas do dataset original. Foge do escopo descrever esse processo, que é um pouco extenso. Entretanto, se você estiver interessado em entender como isso foi feito, eu te encorajo a conferir o `.Rmd` onde isso é feito, [no repositório que deu origem a esse post](https://github.com/moraessaur/client_segmentation/blob/main/notebooks/post_1.Rmd), ele está minimamente legível e anotado :)
+
+Adicionalmente, tanto a data de nascimento como o lifetime dos clientes **não está presente** no dataset original, mas eu achei uma informação que seria interessante e por isso simulei estes valores. Eles não são, portanto, reais!
+
+# Definindo o número de clusters usando o Elbow Method
+***
+
+No algoritmo K-prototypes, o número de clusters no qual as observações serão agrupadas, é definido *a priori*, ou seja, devemos definir quantos serão antes de rodar a análise.
+
+Este fato sempre levanta a questão: quantos clusters escolher?
+
+Não existe resposta certa para essa pergunta, pois isso depende dos dados, da granularidade que queremos obter, entre outros fatores. Existem, entretanto, uma série de métodos que podem nortear esse processo, alguns explicados na própria documentação do [`{clustMixType}`](https://cran.r-project.org/web/packages/clustMixType/clustMixType.pdf), através da função `validation_kproto`.
+
+Foge do escopo discutir os diferentes métodos, mas aqui opto por utilizar o *elbow method* (ou método do cotovelo). Neste, é executada uma série de clusterizações e, a partir de cada uma, calculada a variação intra cluster (na forma da soma dos erros quadrados intra cluster ou **wss**). A ideia é que aquela com menor valor de **wss**, tende a ser mais indicada como clusterização, pois esta indica uma maior estruturação dos mesmos. Ainda, queremos escolher o menor número viável de clusters, para não termos um modelo enviesado demais.
+
+Felizmente, isso pode ser visualizado, o que facilita a intepretação dessa questão.
+
+O gráfico abaixo, indica os valores de wss (eixo y), para cada clusterização feita com um determinado *n* de clusters definidos *a priori* (eixo x):
+
+```{r, echo = FALSE}
+elbow_plot + xlab("N clusters") + ylab('wss')
+```
+
+Queremos uma combinação entre um baixo wss e número de clusters. Isso pode ser quantificado a partir da distância de cada ponto em relação à reta que une os pontos com maior e menor valor de wss. Esse valor vai nos dar o melhor *tradeoff* de wss/n de clusters!
+
+No caso acima, seria o modelo com 3 clusters, mas não é preciso fazer isso apenas no "olhômetro". Esse gráfico foi extraído de uma tabela, que contém esses valores (ordenado em ordem crescente de distâncias até a reta):
+
+```{r, echo=FALSE}
+rmarkdown::paged_table(elbow_df %>% arrange(desc(distances)))
+```
+
+Vale enfatizar duas coisas: nada nos impede de usar mais ou menos clusters, sendo o *elbow method* uma abordagem holística. A outra, é que existem diversas maneiras de calcular o número ótimo de clusters para as análises, fato já mencionado.
+
+Já sabemos então que uma análise com 4 clusters é um bom ponto de partida para segmentar o nosso dataset. Então agora é rodar a clusterização usando o número escolhido. Para fazer isso vou utilizar o dataset que já está pronto e executar a função `kproto`, definindo o número de clusters como 4. Vou armazenar resultado em um objeto denominado `client_segmentation`:
+
+```{r,echo=FALSE}
+set.seed(123)
+client_segmentation <- kproto(dataset_clustering,4)
+rmarkdown::paged_table(client_segmentation$data)
+```
+
+Um dos outputs dessa função é a tabela acima, que destaca os valores médios ou valores mais frequentes (dependendo do tipo de dado) de cada cluster formado.
+
+Para algumas variáveis parece repetitivo, mas isso pode ser investigado mais a fundo com mais clusterizações e uma boa análise exploratória. Além disso, existem outros atributos vinculados a esse objeto (de classe k-proto) que também podem ser analisadas.
+
+Este será o tema do próximo post: explorar os resultados da clusterização(ões)!
