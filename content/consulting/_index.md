@@ -2,13 +2,14 @@
 title: "Serviços de consultoria"
 text_align_right: true
 description: |
- <div style="text-align: left">  Presto consultorias para projetos em geral, ajudando clientes a coletar, estruturar, analisar ou visualizar seus dados. 
+ <div style="text-align: left">  Presto consultorias para projetos em ciência de dados, ajudando clientes a coletar, estruturar, analisar ou visualizar seus dados. Também transformo métricas arbitrárias em produtos robustos e direcionados por dados. Sabe aquela métrica que você usa mas não tem certeza se faz sentido? Podemos testá-la! Ainda, podemos juntos criar uma métrica ou workflow que te dê a informação que você precisa.
  
  Alguns exemplos do que faço:
 
  * Coleta de informações de bases de dados.
  * Estruturamento de dados e tabelas para análises.
  * Limpeza e formatação de dados estruturados ou não.
+ * Criação e/ou enriquecimento de métricas.
  * Dataviz: formatação/geração de gráficos, adequação de visualizações.  
   * Estatística descritiva.
   * Testes estatísticos.
@@ -18,6 +19,7 @@ description: |
     * Árvores de decisão.
   * Análises exploratórias.
   * Uso de pacotes/bibliotecas específicos e funções customizadas.
+  
 
   Em alguns casos, auxilio na redação de artigos/textos científicos e na elaboração de relatórios.
 
