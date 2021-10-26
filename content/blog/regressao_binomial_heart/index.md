@@ -2,7 +2,7 @@
 title: "Regressão Logística Binomial"
 excerpt: |
   Exercício aplicando stepwise regression usando dados de doenças cardíacas, em uma regressão
-  logística binomial. Aqui também discuto brevemente cruvas ROC, AUC, acurácia e sua relação
+  logística binomial. Aqui também discuto brevemente curvas ROC, AUC, acurácia e sua relação
   com o desbalanço de classes.
 author:
   - name: Lucas Moraes.
@@ -247,7 +247,7 @@ Como as curvas `full` e `step` são parecidas, vou comparar os valores de AUC ap
 
 
 ```
-## # A tibble: 2 x 2
+## # A tibble: 2 × 2
 ##   model auc_value
 ##   <chr>     <dbl>
 ## 1 step      0.737
@@ -284,7 +284,7 @@ Todas as variáveis incluídas nesse modelo se correlacionam positivamente com a
 
 
 ```
-## # A tibble: 8 x 2
+## # A tibble: 8 × 2
 ##   variavel         t.stat
 ##   <chr>             <dbl>
 ## 1 age               10.1 
@@ -392,7 +392,7 @@ Ainda assim, é possível ver que, mesmo com o problema da acurácia, o modelo `
 
 
 ```
-## # A tibble: 3 x 3
+## # A tibble: 3 × 3
 ##   metrica     step    bad
 ##   <fct>      <dbl>  <dbl>
 ## 1 Precision 0.714  0.562 
