@@ -1,0 +1,148 @@
+---
+title: "Data viz: eixo y duplo!"
+excerpt: |
+  Post de leitura rápida, mostrando como construir um plot com eixo y duplo, com escalas diferentes.
+author:
+  - name: Lucas Moraes.
+    url: https://lucasmoraes.org
+date: 01-12-2021
+categories:
+  - Data viz
+  - ggplot
+  - Leitura rápida
+output:
+  distill::distill_article:
+    toc: true
+    self_contained: false
+---
+
+Esse vai ser um post bem rápido de data viz, explicando como construir um gráfico com dois eixos y, que tem escalas/unidades distintas.
+
+Em geral não é uma boa ideia construir gráficos desse tipo, mas para alguns casos eles podem ser úteis.
+
+Aqui, uso dados de desmatamento do Prodes e da precipitação média anual, do BDMEP, para o município de Porto Velho (AM). Essa escolha foi arbitrária e o objetivo aqui não é analisar os dados, apenas plotar!
+
+# Os dados
+
+Extraí os dados usando a [Base dos Dados](https://basedosdados.org/dataset/67aac97e-2f13-4def-ae73-779a1bc0a723) (especificamente [daqui](https://basedosdados.org/dataset/b9528c5f-3b31-4383-9e60-51e34e6b9237) e [daqui](https://basedosdados.org/dataset/67aac97e-2f13-4def-ae73-779a1bc0a723)). A query que construí me gerou duas tabelas.
+
+A primeira, contém a área desmatada no município, por ano:
+
+```{r,message=FALSE,warning=FALSE,echo=FALSE}
+library(tidyverse)
+```
+
+
+```{r, message=FALSE}
+df_desmatado <- 
+  read_csv("https://www.dropbox.com/s/qq9at6hsdyctlpo/df_desmatado.csv?dl=1")
+
+rmarkdown::paged_table(df_desmatado)
+```
+
+A segunda contém a precipitação média anual, para o município:
+
+```{r, message=FALSE}
+df_precip_anual <- 
+  read_csv("https://www.dropbox.com/s/t635jy650z0i72c/df_mean_precip_anual.csv?dl=1")
+
+rmarkdown::paged_table(df_precip_anual)
+```
+
+Para começar a trabalhar na plotagem, fiz um join destas duas tabelas, já aproveitando para converter a coluna ano para fator:
+
+```{r}
+tabela <- 
+  left_join(df_precip_anual,df_desmatado) %>% 
+  mutate(ano=as.factor(ano)) %>% 
+  na.omit()
+
+rmarkdown::paged_table(tabela)
+```
+
+Nesta tabela existem as duas colunas, com escalas de valores e unidades diferentes.
+
+Eu poderia simplesmente plotar ambas no mesmo gráfico, ignorando essa questão:
+
+```{r, echo = TRUE}
+tabela %>% # chamando a tabela
+  ggplot(aes(x=ano,y=desmatado)) + # referenciando as variáveis
+  geom_col(fill='#8492e3',color="black") + # barplot de valores de desmatamento
+  geom_line(data=tabela, color='black',lty=2, size=1, # line plot dos valores de precipitação
+            aes(x=ano,y=precipitacao_media,group=1), inherit.aes = FALSE) +
+  geom_point(data=tabela, color='black', size = 2, # point plot dos valores de precipitação
+            aes(x=ano,y=precipitacao_media,group=1), inherit.aes = FALSE) +
+  ylab("Área desmatada (ha.)") +
+  xlab('Ano') +
+  theme_bw() # tema
+```
+
+Entretanto, temos dois problemas aqui: primeiro, praticamente não é possível visualizar a linha, que corresponde aos valores de precipitação. Isso acontece por causa da escala dos valores de desmatamento, que são maiores e norteiam o eixo y. Segundo, temos apenas um eixo y, referente ao desmatamento.
+
+O segredo para resolver esse problema está nos argumentos da função `scale_y_continuous`, especificamente, no argumento `sec.axis`. 
+
+Este argumento duplica o eixo y:
+
+```{r}
+tabela %>% 
+  ggplot(aes(x=ano,y=desmatado)) +
+  geom_col(fill='#8492e3',color="black") +
+  geom_line(data=tabela, color='black',lty=2, size=1,
+            aes(x=ano,y=precipitacao_media,group=1), inherit.aes = FALSE) +
+  geom_point(data=tabela, color='black', size = 2,
+            aes(x=ano,y=precipitacao_media,group=1), inherit.aes = FALSE) +
+  scale_y_continuous(sec.axis = sec_axis(~ .,name = "Precipitação média (mm)")) + # duplicando o eixo y e mudando seu nome
+  ylab("Área desmatada (ha.)") +
+  xlab('Ano') +
+  theme_bw() 
+```
+
+Embora tenhamos dois eixos y agora, ainda temos o problema da escala e dos valores, pois ele está literalmente duplicado (apenas o título foi alterado). Este problema pode ser resolvido multiplicando os valores da coluna de precipitação, de uma forma que permita que esta escale com a coluna do desmatado. Nesse caso, vou multiplicar todos valores de precipitação por 10.000, isso vai "puxar" os valores para cima no gráfico:
+
+```{r}
+tabela %>% 
+  ggplot(aes(x=ano,y=desmatado)) +
+  geom_col(fill='#8492e3',color="black") +
+  geom_line(data=tabela, color='black',lty=2, size=1,
+            aes(x=ano,y=precipitacao_media*10^4.5,group=1), inherit.aes = FALSE) + # multiplicando os valores de y
+  geom_point(data=tabela, color='black', size = 2,
+            aes(x=ano,y=precipitacao_media*10^4.5,group=1), inherit.aes = FALSE) + # multiplicando os valores de y
+  scale_y_continuous(sec.axis = sec_axis(~ .,name = "Precipitação média (mm)")) +
+   ylab("Área desmatada (ha.)") +
+  xlab('Ano') +
+  theme_bw() 
+```
+<br>
+Agora conseguimos enxergar os valores de precipitação de maneira mais clara. Como foram todos multiplicados pelo mesmo número, a escala deles não se alterou.
+
+Por último, preciso igualar a escala do eixo duplicado, uma vez que os valores que constam no gráfico, são aqueles referentes ao desmatamento.
+
+Para fazer isso simplesmente divido pelo **mesmo número** que usei para aumentar a escala dos valores (10.000), mas faço isso **dentro do argumento `sec.axis`**. No código abaixo, apenas inseri a expressão `* 10^-4.5` ao lado da duplicação do eixo:
+
+```{r}
+tabela %>% 
+  ggplot(aes(x=ano,y=desmatado)) +
+  geom_col(fill='#8492e3',color="black") +
+  geom_line(data=tabela, color='black',lty=2, size=1,
+            aes(x=ano,y=precipitacao_media*10^4.5,group=1), inherit.aes = FALSE) +
+  geom_point(data=tabela, color='black', size = 2,
+            aes(x=ano,y=precipitacao_media*10^4.5,group=1), inherit.aes = FALSE) +
+  scale_y_continuous(sec.axis = sec_axis(~ . * 10^-4.5,name = "Precipitação média (mm)")) + # dividindo eixo
+   ylab("Área desmatada (ha.)") +
+  xlab('Ano') +
+  theme_bw() 
+
+```
+
+Essa operação vai ajustar as transformações dos valores de precipitação com o valor da escala duplicada, consertando a escala!
+
+Podemos chamar a tabela de novo apenas para ter certeza que os números fazem sentido:
+
+```{r}
+rmarkdown::paged_table(tabela)
+```
+
+E é isso! O código que gera esses dados pode ser acessado no repo desse site, mas é mais fácil chegar nele [por esse repo aqui](https://github.com/moraessaur/double_axis_plots), que gera apenas o que foi analisado acima :) Nele, também estão contidas as queries de SQL utilizadas para extrair os dados da Base dos Dados.
+
+
+
