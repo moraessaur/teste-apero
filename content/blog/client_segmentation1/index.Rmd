@@ -4,8 +4,8 @@ excerpt: |
   Primeiro post de uma série mostrando como aplicar o algoritmo não supervisionado K-prototypes, para segmentar dados de diversos tipos.
 author:
   - name: Lucas Moraes.
-    url: https://lucasmoraes.org
-date: 12-22-2020
+  - url: https://lucasmoraes.org
+date: 2021-09-28
 categories:
   - k-prototypes
   - segmentation

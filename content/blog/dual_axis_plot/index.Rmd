@@ -4,8 +4,8 @@ excerpt: |
   Post de leitura rápida, mostrando como construir um plot com eixo y duplo, com escalas diferentes.
 author:
   - name: Lucas Moraes.
-    url: https://lucasmoraes.org
-date: 01-12-2021
+  - url: https://lucasmoraes.org
+date: 2021-10-28
 categories:
   - Data viz
   - ggplot
