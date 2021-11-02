@@ -1,7 +1,7 @@
 baseURL = "https://www.lucasmoraes.org"
 theme = "hugo-apero"
 languageCode = "en"
-title = "Site pessoal Lucas Moraes. Data Science. Biology."
+title = "Site pessoal Lucas Moraes, cientista de dados."
 author = "Lucas Moraes"
 copyright = "" # set to override the auto generated copyright using org info and now year
 googleAnalytics = ""
@@ -9,7 +9,7 @@ disqusShortname = ""
 metaDataFormat = "yaml"
 footnoteReturnLinkContents = "&#8617;" # ↩
 # set deliberately low for testing choose your prefered number based on the blog layout you've chosen
-paginate = 5
+paginate = 10
 preserveTaxonomyNames = true
 ignoreFiles = ["\\.Rmd$", "\\.Rmarkdown$", "_cache$", "\\.knit\\.md$", "\\.utf8\\.md$"]
 enableEmoji = true
