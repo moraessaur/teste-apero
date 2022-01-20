@@ -2,32 +2,33 @@
 title: "Serviços de consultoria"
 text_align_right: true
 description: |
- <div style="text-align: left">  Presto consultorias para projetos em ciência de dados, ajudando clientes a coletar, estruturar, analisar ou visualizar seus dados. Também transformo métricas arbitrárias em produtos robustos e direcionados por dados. Sabe aquela métrica que você usa mas não tem certeza se faz sentido? Podemos testá-la! Ainda, podemos juntos criar uma métrica ou workflow que te dê a informação que você precisa.
+ <div style="text-align: left">  
+ Presto consultorias em análise e ciência de dados, para projetos corporativos ou acadêmicos. Parte do que faço pode ser conferido em minha sessão de projetos, embora eu não consiga atualizar este portfolio com tudo que tenho feito, devido ao tempo.<p> Minhas maiores especialidades giram em torno das análises Ad Hoc, formulação ou reformulação de perguntas e implementação de modelos. <p>Prezo pelo princípio da parcimônia, atingindo objetivos sempre com o menor número de passos possível. Muitas vezes, a resolução de questões analíticas pode ser feita revisitando uma análise exploratória ou com modelos simples. Outras vezes a questão pode apenas ser reformular o desenho experimental ou a estrutura/coleta de dados. Por fim, problemas complexos podem exigir também soluções complexas.
+
  
- Alguns exemplos do que faço:
-
- * Coleta de informações de bases de dados.
- * Estruturamento de dados e tabelas para análises.
- * Limpeza e formatação de dados estruturados ou não.
- * Criação e/ou enriquecimento de métricas.
- * Dataviz: formatação/geração de gráficos, adequação de visualizações.  
-  * Estatística descritiva.
-  * Testes estatísticos.
-  * Aplicação de modelos:
-    * Regressão linear & logística.
-    * Clusterização.
-    * Árvores de decisão.
-  * Análises exploratórias.
-  * Uso de pacotes/bibliotecas específicos e funções customizadas.
-  
-
-  Em alguns casos, auxilio na redação de artigos/textos científicos e na elaboração de relatórios.
-
-  Sou uma pessoa tranquila e aberta a novos desafios. Costumo conversar sem compromisso para entender a questão e ver o que pode ser feito, de minha parte. As possibilidades são muitas: já trabalhei analisando desde dados de mamíferos à presença de hóspedes em hotéis. 
-
-  Caso queira entrar em contato, é só acessar a aba de mesmo nome ou mandar um email para moraessaur@gmail.com.
-  
-
+ Especificamente, atuo nas frentes abaixo:
+  * Coleta e limpeza de dados:
+    * Uso de bibliotecas com interfaces a API’S para extrair informações de bases dados de maneira programática.
+    * Webscrapping de dados não estruturados.
+    * Limpeza, formatação e padronização de dados.
+  * Análises exploratórias
+    * Aqui respondo algumas perguntas como:
+      * Como os dados estão distribuídos?
+      * Quais variáveis são informativas?
+      * Quais estão correlacionadas?
+  * Segmentação de dados
+    * Uso de modelos não supervisionados para identificar grupos/estruturas.
+    * Segmentação de clientes.
+  * Enriquecimento de métricas
+    * Uso de estatística para delimitação de métricas robustas e direcionadas por dados.
+    * Métricas de churn com base nos dados da amostra.
+  * Modelagem para análise preditiva ou descritiva
+    * Modelos supervisionados 
+      * XGBoost
+      * Regressão (Linear, logística, poisson)
+  * Modelos-não supervisionados
+    * Clusterização Hierárquica
+    * K-means, K-Modes, K-Prototypes.
  </div>
 show_header: true
 sidebar_left: true

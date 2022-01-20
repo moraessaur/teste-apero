@@ -109,25 +109,32 @@ enableEmoji = true
     title = "Mais sobre mim"
     url = "/about/"
     weight = 1
+  
+  [[menu.header]]
+    name = "Portfolio"
+    title = "Teste"
+    url = "/portfolio/"
+    weight = 3
+
   [[menu.header]]
     name = "Blog & Portfolio"
     title = "Blog"
     url = "/blog/"
     weight = 2
 
-[[menu.header]]
+  [[menu.header]]
     name = "Consultoria"
     title = "Teste"
     url = "/consulting/"
     weight = 3
 
-[[menu.header]]
+  [[menu.header]]
     name = "Contato"
     title = "Teste"
     url = "/contact/"
     weight = 4
-# Colocar de novo depois
-[[menu.header]]
+  # Colocar de novo depois
+  [[menu.header]]
     name = "English"
     title = "Teste"
     url = "https://www.lucasmoraes.io"
