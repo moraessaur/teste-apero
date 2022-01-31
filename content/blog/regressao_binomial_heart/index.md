@@ -8,6 +8,7 @@ author:
   - name: Lucas Moraes.
     url: https://lucasmoraes.org
 date: 12-22-2020
+show_comments: true
 categories:
   - Regressão Logística
   - ROC
@@ -45,22 +46,22 @@ O primeiro passo é sempre dar uma olhada na estrutura da tabela:
 ```
 ## Rows: 4,238
 ## Columns: 16
-## $ male            <int> 1, 0, 1, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 0, 0, 0, 1, 0, …
-## $ age             <int> 39, 46, 48, 61, 46, 43, 63, 45, 52, 43, 50, 43, 46, 41…
-## $ education       <int> 4, 2, 1, 3, 3, 2, 1, 2, 1, 1, 1, 2, 1, 3, 2, 2, 3, 2, …
-## $ currentSmoker   <int> 0, 0, 1, 1, 1, 0, 0, 1, 0, 1, 0, 0, 1, 0, 1, 1, 1, 1, …
-## $ cigsPerDay      <int> 0, 0, 20, 30, 23, 0, 0, 20, 0, 30, 0, 0, 15, 0, 9, 20,…
-## $ BPMeds          <int> 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, …
-## $ prevalentStroke <int> 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, …
-## $ prevalentHyp    <int> 0, 0, 0, 1, 0, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 1, 1, 0, …
-## $ diabetes        <int> 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, …
-## $ totChol         <int> 195, 250, 245, 225, 285, 228, 205, 313, 260, 225, 254,…
-## $ sysBP           <dbl> 106.0, 121.0, 127.5, 150.0, 130.0, 180.0, 138.0, 100.0…
-## $ diaBP           <dbl> 70.0, 81.0, 80.0, 95.0, 84.0, 110.0, 71.0, 71.0, 89.0,…
-## $ BMI             <dbl> 26.97, 28.73, 25.34, 28.58, 23.10, 30.30, 33.11, 21.68…
-## $ heartRate       <int> 80, 95, 75, 65, 85, 77, 60, 79, 76, 93, 75, 72, 98, 65…
-## $ glucose         <int> 77, 76, 70, 103, 85, 99, 85, 78, 79, 88, 76, 61, 64, 8…
-## $ TenYearCHD      <int> 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, …
+## $ male            <int> 1, 0, 1, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 0, 0, 0, 1, 0, ~
+## $ age             <int> 39, 46, 48, 61, 46, 43, 63, 45, 52, 43, 50, 43, 46, 41~
+## $ education       <int> 4, 2, 1, 3, 3, 2, 1, 2, 1, 1, 1, 2, 1, 3, 2, 2, 3, 2, ~
+## $ currentSmoker   <int> 0, 0, 1, 1, 1, 0, 0, 1, 0, 1, 0, 0, 1, 0, 1, 1, 1, 1, ~
+## $ cigsPerDay      <int> 0, 0, 20, 30, 23, 0, 0, 20, 0, 30, 0, 0, 15, 0, 9, 20,~
+## $ BPMeds          <int> 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, ~
+## $ prevalentStroke <int> 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, ~
+## $ prevalentHyp    <int> 0, 0, 0, 1, 0, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 1, 1, 0, ~
+## $ diabetes        <int> 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, ~
+## $ totChol         <int> 195, 250, 245, 225, 285, 228, 205, 313, 260, 225, 254,~
+## $ sysBP           <dbl> 106.0, 121.0, 127.5, 150.0, 130.0, 180.0, 138.0, 100.0~
+## $ diaBP           <dbl> 70.0, 81.0, 80.0, 95.0, 84.0, 110.0, 71.0, 71.0, 89.0,~
+## $ BMI             <dbl> 26.97, 28.73, 25.34, 28.58, 23.10, 30.30, 33.11, 21.68~
+## $ heartRate       <int> 80, 95, 75, 65, 85, 77, 60, 79, 76, 93, 75, 72, 98, 65~
+## $ glucose         <int> 77, 76, 70, 103, 85, 99, 85, 78, 79, 88, 76, 61, 64, 8~
+## $ TenYearCHD      <int> 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, ~
 ```
 Existem algumas variáveis formatadas como numéricas, que são categóricas. Estas serão convertidas para fator. São elas:
 
@@ -247,7 +248,7 @@ Como as curvas `full` e `step` são parecidas, vou comparar os valores de AUC ap
 
 
 ```
-## # A tibble: 2 × 2
+## # A tibble: 2 x 2
 ##   model auc_value
 ##   <chr>     <dbl>
 ## 1 step      0.737
@@ -284,7 +285,7 @@ Todas as variáveis incluídas nesse modelo se correlacionam positivamente com a
 
 
 ```
-## # A tibble: 8 × 2
+## # A tibble: 8 x 2
 ##   variavel         t.stat
 ##   <chr>             <dbl>
 ## 1 age               10.1 
@@ -392,7 +393,7 @@ Ainda assim, é possível ver que, mesmo com o problema da acurácia, o modelo `
 
 
 ```
-## # A tibble: 3 × 3
+## # A tibble: 3 x 3
 ##   metrica     step    bad
 ##   <fct>      <dbl>  <dbl>
 ## 1 Precision 0.714  0.562 

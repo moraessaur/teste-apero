@@ -29,7 +29,10 @@ description: |
   * Modelos-não supervisionados
     * Clusterização Hierárquica
     * K-means, K-Modes, K-Prototypes.
+ 
  </div>
+
+
 show_header: true
 sidebar_left: true
 # Keep this! Do not edit.

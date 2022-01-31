@@ -6,6 +6,7 @@ author:
   - name: Lucas Moraes.
   - url: https://lucasmoraes.org
 date: 2021-09-28
+show_comments: true
 categories:
   - k-prototypes
   - segmentation
