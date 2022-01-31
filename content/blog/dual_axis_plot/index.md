@@ -6,6 +6,7 @@ author:
   - name: Lucas Moraes.
   - url: https://lucasmoraes.org
 date: 2021-10-28
+show_comments: true
 categories:
   - Data viz
   - ggplot

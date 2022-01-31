@@ -6,6 +6,7 @@ author:
   - name: Lucas Moraes
     url: https://lucasmoraes.io
 date: 2021-01-02
+show_comments: true
 categories:
   - Análise de dados
   - Leitura rápida

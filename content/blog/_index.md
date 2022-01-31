@@ -1,10 +1,12 @@
 ---
 title: Blog, portfolio & snippets
 description: |
-  Aqui reservo um espaço para postar assuntos relacionados à ciência de dados e projetos pessoais, em uma espécie de blog e porfolio. Também tenho incluído aqui alguns posts para ajudar colegas e amigos a entenderem algumas ferramentas básicas de R e análise de dados, que podem auxiliar em suas pesquisas. Todo código utilizado aqui pode ser conferido no [repositório deste site (na pasta do blog)!](https://github.com/moraessaur/teste-apero/tree/main/content/blog) 
+  Aqui reservo um espaço para postar assuntos relacionados à ciência de dados em geral em uma espécie de blog. Também tenho incluído aqui alguns posts para ajudar colegas e amigos a entenderem algumas ferramentas básicas de R e análise de dados, que podem auxiliar em suas pesquisas, além de servirem como snippets para eu mesmo. Todo código utilizado aqui pode ser conferido no [repositório deste site (na pasta do blog)!](https://github.com/moraessaur/teste-apero/tree/main/content/blog)
+  Para projetos de meu portfolio de trabalho & consultoria, conto com uma sessão separada (projetos). 
 author: "Lucas Moraes"
 show_post_thumbnail: true
 show_author_byline: false
+show_comments: true
 show_post_date: false
 # for listing page layout
 layout: list # list, list-sidebar, list-grid

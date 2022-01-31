@@ -6,6 +6,7 @@ author:
   - name: Lucas Moraes.
     url: https://lucasmoraes.org
 date: 01-12-2021
+show_comments: true
 categories:
   - Data viz
   - facet_wrap()
