@@ -3,7 +3,7 @@ title: "Serviços de consultoria"
 text_align_right: true
 description: |
  <div style="text-align: left">  
- Presto consultorias em análise e ciência de dados, para projetos corporativos ou acadêmicos. Parte do que faço pode ser conferido em minha sessão de projetos, embora eu não consiga atualizar este portfolio com tudo que tenho feito, devido ao tempo.<p> Minhas maiores especialidades giram em torno das análises Ad Hoc, formulação ou reformulação de perguntas e implementação de modelos. <p>Prezo pelo princípio da parcimônia, atingindo objetivos sempre com o menor número de passos possível. Muitas vezes, a resolução de questões analíticas pode ser feita revisitando uma análise exploratória ou com modelos simples. Outras vezes a questão pode apenas ser reformular o desenho experimental ou a estrutura/coleta de dados. Por fim, problemas complexos podem exigir também soluções complexas.
+ Presto consultorias em análise e ciência de dados, para projetos corporativos ou acadêmicos. <p> Minhas maiores especialidades giram em torno das análises Ad Hoc, formulação ou reformulação de perguntas e implementação de modelos. <p>Prezo pelo princípio da parcimônia, atingindo objetivos sempre com o menor número de passos possível. Muitas vezes, a resolução de questões analíticas pode ser feita revisitando uma análise exploratória ou com modelos simples. Outras vezes a questão pode apenas ser reformular o desenho experimental ou a estrutura/coleta de dados. Por fim, problemas complexos podem exigir também soluções complexas.
 
  
  Especificamente, atuo nas frentes abaixo:
