@@ -1,12 +1,11 @@
 ---
 title: "Data viz: eixo y duplo!"
 excerpt: |
-  Post de leitura rápida, mostrando como construir um plot com eixo y duplo, com escalas diferentes.
+  Post de leitura rápida, mostrando como construir um (não recomendado) plot com eixo y duplo, com escalas diferentes. Pode ser útil em casos específicos.
 author:
   - name: Lucas Moraes.
   - url: https://lucasmoraes.org
 date: 2021-10-28
-show_comments: true
 categories:
   - Data viz
   - ggplot
