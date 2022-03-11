@@ -213,7 +213,7 @@ grid_output <-
 ```
 
 ```
-## v 1 of 9 tuning:     receita1_xgb_spec (1m 14.9s)
+## v 1 of 9 tuning:     receita1_xgb_spec (1m 13.2s)
 ```
 
 ```
@@ -225,7 +225,7 @@ grid_output <-
 ```
 
 ```
-## v 2 of 9 tuning:     receita1_rf_spec (53.3s)
+## v 2 of 9 tuning:     receita1_rf_spec (54.7s)
 ```
 
 ```
@@ -233,7 +233,7 @@ grid_output <-
 ```
 
 ```
-## v 3 of 9 tuning:     receita1_log_reg (2.6s)
+## v 3 of 9 tuning:     receita1_log_reg (2.7s)
 ```
 
 ```
@@ -241,7 +241,7 @@ grid_output <-
 ```
 
 ```
-## v 4 of 9 tuning:     receita2_xgb_spec (1m 9.8s)
+## v 4 of 9 tuning:     receita2_xgb_spec (1m 12s)
 ```
 
 ```
@@ -253,7 +253,7 @@ grid_output <-
 ```
 
 ```
-## v 5 of 9 tuning:     receita2_rf_spec (57.8s)
+## v 5 of 9 tuning:     receita2_rf_spec (53.3s)
 ```
 
 ```
@@ -261,7 +261,7 @@ grid_output <-
 ```
 
 ```
-## v 6 of 9 tuning:     receita2_log_reg (2.8s)
+## v 6 of 9 tuning:     receita2_log_reg (2.6s)
 ```
 
 ```
@@ -269,7 +269,7 @@ grid_output <-
 ```
 
 ```
-## v 7 of 9 tuning:     receita3_xgb_spec (1m 19s)
+## v 7 of 9 tuning:     receita3_xgb_spec (1m 14.7s)
 ```
 
 ```
@@ -281,7 +281,7 @@ grid_output <-
 ```
 
 ```
-## v 8 of 9 tuning:     receita3_rf_spec (1m 0.7s)
+## v 8 of 9 tuning:     receita3_rf_spec (57.6s)
 ```
 
 ```
@@ -289,7 +289,7 @@ grid_output <-
 ```
 
 ```
-## v 9 of 9 tuning:     receita3_log_reg (2.8s)
+## v 9 of 9 tuning:     receita3_log_reg (2.7s)
 ```
 # Explorando os resultados
 ***
@@ -400,6 +400,7 @@ grid_output %>%
 | mtry| min_n|.config               |
 |----:|-----:|:---------------------|
 |    1|    15|Preprocessor1_Model23 |
+
 Mas nem sempre faz sentido usar a configuração mais performática no treino, pois ela pode estar performando bem por *overfitting*!
 
 # Implementando na partição de teste

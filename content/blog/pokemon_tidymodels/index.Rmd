@@ -243,6 +243,7 @@ grid_output %>%
    select_best(metric = "roc_auc")
 )
 ```
+
 Mas nem sempre faz sentido usar a configuração mais performática no treino, pois ela pode estar performando bem por *overfitting*!
 
 # Implementando na partição de teste
