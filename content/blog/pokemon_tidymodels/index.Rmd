@@ -1,0 +1,301 @@
+---
+title: "Testando múltiplos modelos supervisionados & tunados!"
+excerpt: |
+  Executando e implementando uma busca em grid para diversos modelos e hiperparâmetros diferentes, usando o framework do tidymodels.
+author:
+  - name: Lucas Moraes.
+  - url: https://lucasmoraes.org
+date: 2022-03-11
+categories:
+  - machine learning
+  - tidymodels
+output:
+  distill::distill_article:
+    toc: true
+    self_contained: false
+---
+
+Neste post, vou usar novamente o `{tidymodels}`, mas com a intenção de explorar algumas funcionalidades ao invés de implementar e interpretar os modelos em si.
+
+Especificamente, vou montar um *pipeline* que permite analisar a performance de modelos com fórmulas, etapas de pré-processamento e diferentes hiperparâmetros, de maneira simples, paralela e combinatória.
+
+# Os dados e meu objetivo
+***
+
+Para esta análise irei usar dados referentes à atributos de *Pokemons*. Não se deixe enganar, este dataset é uma ótima ferramenta de testes, pois possui variáveis de todos os tipos, categorias e distribuições.
+
+Existe um tipo especial e raro de *pokemon*, chamado **lendário**. Esta será minha variável de resposta, sendo ela binária.
+
+O meu objetivo aqui será testar três diferentes modelos (regressão logística, random forest e XGBoost), com diferentes variáveis explicativas e tratamento dos dados, e diferentes valores para os hiperparâmetros de cada.
+
+Meus dados crus, consistem no dataset `pokemon.csv`. Este possui uma quantidade enorme de informações, mas vou selecionar apenas algumas, para simplificar o processo.
+
+Novamente, minha intenção aqui é mostrar como este tipo de *pipeline* pode auxiliar no processo de escolha de qual modelo utilizar para um problema. O `{tidymodels}` tem se mostrado uma ferramenta muito poderosa nesse sentido, permitindo executar essas análises de maneira intuitiva e com sintaxe simples.
+
+# Preparando os dados e o ambiente
+***
+
+Primeiramente vou ler a tabela que encontra-se [nesta pasta do dropbox](https://www.dropbox.com/s/loim4redam6feoy/pokemon.csv?dl=0) e registrar os processadores para agilizar a velocidade das análises:
+
+
+```{r, message=FALSE, warning=FALSE}
+# chamando pacotes
+library(tidyverse)
+library(janitor)
+library(tidymodels)
+library(xgboost)
+# puxando tabela
+df_pokemon <- 
+  read_csv("https://www.dropbox.com/s/loim4redam6feoy/pokemon.csv?dl=1") %>% 
+  clean_names()
+# registrando cpu's para o processamento paralelo
+library(doParallel)
+all_cores <- parallel::detectCores(logical = FALSE)
+registerDoParallel(cores = all_cores)
+```
+
+Em seguida vou extrair apenas os dados que preciso e formatá-los:
+
+```{r, message=FALSE, warning=FALSE}
+df_model <- 
+df_pokemon %>% 
+  select(is_legendary,sp_attack,sp_defense, # extraindo apenas essas 5 variáveis
+         speed,attack,defense,type1) %>% 
+  mutate_if(is.character,as.factor) %>% # convertendo strings para fatores
+  mutate(is_legendary=as.factor(is_legendary)) %>%  # convertendo y para fator
+  relocate(is_legendary) %>%  # perfumaria - trazendo var pra frente
+  na.omit() # Omitindo os NA (não recomendado!)
+
+```
+
+Desse modo tenho minha variável de resposta `is_legendary` e algumas outras variáveis (ataque e ataque especial, defesa e defesa especial, velocidade e tipo primário) que escolhi como explicativas. Todas variáveis explicativas são numéricas com a exceção do tipo primário, que assume categorias distintas (**e.g.:** fogo, água, etc...).
+
+Abaixo, uma visão geral da tabela:
+
+```{r, message=FALSE, warning=FALSE}
+df_model %>% glimpse()
+```
+# Particionando a amostra e criando receitas
+***
+
+Em seguida vou dividir minha amostra em partições de treino, teste e replicatas de validação cruzada:
+
+```{r, message=FALSE, warning=FALSE}
+set.seed(123)
+df_split <- 
+  initial_split(df_model,strata=is_legendary) # dividindo as partições
+df_train <- training(df_split) # Extraindo df de treino
+df_test <- testing(df_split) # Extraindo df de teste
+df_folds <- vfold_cv(df_train) # Criando replicatas por cv
+```
+
+Agora posso criar diferentes "receitas" que serão testadas. Estas consistem nas fórmulas que quero testar (quais variáveis incluir, no caso) e algumas transformações que podem ser feitas nos dados (normalização de variáveis contínuas, por exemplo).
+
+Abaixo um exemplo. Nesta receita, estou usando apenas o ataque e a defesa como variáveis explicativas. Além disso, estou normalizando ambas variáveis, que são numéricas. Também estou corrigindo o desbalanço de classes por *downsampling*.
+
+
+```{r, message=FALSE, warning=FALSE}
+receita1 <- 
+  recipe(is_legendary ~ attack + defense,data=df_train) %>% # formula
+  themis::step_downsample(is_legendary) %>% # downsampling
+  step_normalize(all_numeric_predictors()) # normalização
+```
+
+Em seguida vou criar mais duas receitas, uma igual a acima, adicionando o ataque e defesa *especiais* dos pokemon. Na terceira, vou incluir todos dados:
+
+```{r, message=FALSE, warning=FALSE}
+receita2 <- 
+  recipe(is_legendary ~ sp_attack + sp_defense,data=df_train) %>% # diferente aqui
+  themis::step_downsample(is_legendary) %>% # downsampling
+  step_normalize(all_numeric_predictors()) # normalização
+
+receita3 <- 
+  recipe(is_legendary ~ .,data=df_train) %>% # todos dados
+  themis::step_downsample(is_legendary) %>% # downsampling
+  step_normalize(all_numeric_predictors()) %>%  # normalização
+  step_dummy(type1) # encoding da var categórica para o xgboost
+```
+
+# Tunagem de hiperparâmetros
+***
+
+Como havia mencionado, quero testar como três modelos diferentes se ajustam aos meus dados: a regressão logística, o random forest e o XGBoost. Além disso, quero testar a performance dos modelos com diferentes valores para seus parâmetros, através da busca em grid.
+
+Faço isso configurando cada modelo, deixando como `tune()` os argumentos que correspondem aos parâmetros que quero incluir no grid:
+
+```{r, message=FALSE, warning=FALSE}
+log_reg <- # Regressão logística
+  logistic_reg(penalty = tune()) %>% # Tunar penalidade
+  set_engine("glmnet")
+
+rf_spec <- # Random Forest
+  rand_forest(mtry = tune(), # Tunar total de features em cada nó
+              min_n = tune(), # Tunar quantidade de dados para um split
+              trees = 1000) %>% 
+  set_engine("ranger") %>% 
+  set_mode("classification")
+
+
+
+xgb_spec <- # XGBoost
+  xgboost_model <- 
+  parsnip::boost_tree(
+    mode = "classification",
+    trees = 1000,
+    min_n = tune(),# Tunar quantidade de dados para um split
+    tree_depth = tune(), # Tunar complexidade da árvore
+    learn_rate = tune(), # Tunar taxa de aprendizado
+    loss_reduction = tune() # Tunar função de perda
+  ) %>%
+  set_engine("xgboost")
+```
+
+# Executando o grid
+***
+
+Tenho 3 receitas, 3 modelos e uma série de hiperparâmetros em cada modelo para testar. Com o `{tidymodels}`, posso juntar toda essa informação em uma única variável, usando listas nomeadas e a função `workflow_set`, que aceita as receitas e as especificações dos modelos como *input*:
+
+```{r, message=FALSE, warning=FALSE}
+modelos_e_receitas <- 
+workflow_set(
+  preproc = list(receita1 = receita1, # Incluindo receitas
+                 receita2 = receita2,
+                 receita3 = receita3),
+  models = list(xgb_spec = xgb_spec, # Incluindo especificações dos modelos
+                rf_spec = rf_spec,
+                log_reg=log_reg))
+```
+
+A partir desse objeto, posso executar um `map` estilo `purrr`, usando a função `workflow_map` que vai combinar todas possibilidades nas amostras da validação cruzada. Isso significa que **cada** combinação (de receita, modelo  e hiperparâmetros) será testada em **10 replicatas** dos dados de treino e a média das métricas de performance resultantes será extraída. Propositadamente, defini o parâmetro `verbose = TRUE` para que conforme os ajustes andam, eu saiba o que está acontecendo:
+
+```{r}
+controle <-
+   control_grid(
+      save_pred = FALSE,
+      parallel_over = "everything",
+      save_workflow = TRUE,
+      extract = extract_model
+   )
+
+grid_output <-
+  modelos_e_receitas %>%
+  workflow_map(
+    seed = 1503, # Deixando reprodutível
+    resamples = df_folds, # usando replicatas
+    grid = 25, # Limitando tamanho do grid
+    verbose = TRUE, # Print do andamento
+    control = controle # Atributos de controle definidos acima
+  )
+```
+# Explorando os resultados
+***
+
+A primeira coisa que consideraria interessante, antes de selecionar os melhores resultados, seria comparar a performance dos modelos. Isso pode ser feito usando a função `autoplot` (que resulta em um objeto de classe `ggplot`), a partir dos resultados do grid:
+
+```{r}
+autoplot(
+   grid_output,
+   rank_metric = "roc_auc", 
+   metric = "roc_auc",       
+   select_best = TRUE     
+) +
+  theme_bw() + # Perfumaria em cima do plot :)
+  theme(axis.title.x=element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank())
+```
+
+Cada ponto representa um modelo e uma receita, tendo seus intervalos de confiança medidos com base na tunagem dos hiperparâmetros. 
+
+Também é possível rankear os resultados da tabela. Abaixo estou selecionando os 10 melhores modelos em relação aos valores médios de AUC, encontrados nos testes de validação cruzada:
+
+```{r, message=FALSE, warning=FALSE}
+knitr::kable( 
+grid_output %>% 
+    rank_results() %>% 
+    filter(.metric == 'roc_auc') %>% 
+    arrange(desc(mean)) %>% 
+    select(wflow_id,.metric,mean,model) %>% 
+    head()
+)
+```
+
+Nesse caso, o melhor modelo foi o `receita3_rf_spec`, que teve maior AUC média. Lembrando, este é um modelo do tipo *random forest* que leva em consideração todos os dados que selecionei da tabela, com normalização das variáveis contínuas e *downsampling* da variável de resposta.
+
+Além disso diversos hiperparâmetros foram testados para todos modelos. Eu poderia inspecionar a variável `grid_output` de diversas formas, para entender os valores específicos de performance para **cada** combinação de hiperparâmetro em **cada** replicata da validação cruzada. Isso pode ser trabalhoso (embora as vezes necessário) e, ao invés de seguir por esse caminho, posso ranquear novamente cada caso, dentro da receita escolhida:
+
+```{r}
+knitr::kable(
+grid_output %>% 
+    extract_workflow_set_result("receita3_rf_spec") %>%
+  collect_metrics() %>%
+  filter(.metric=="roc_auc") %>%
+  arrange(desc(mean))
+)
+```
+
+Alternativamente poderia simplesmente selecionar o melhor conjunto de hiperparâmetros usando a função `select_best`:
+
+```{r}
+knitr::kable(
+grid_output %>% 
+   extract_workflow_set_result("receita3_rf_spec") %>% 
+   select_best(metric = "roc_auc")
+)
+```
+Mas nem sempre faz sentido usar a configuração mais performática no treino, pois ela pode estar performando bem por *overfitting*!
+
+# Implementando na partição de teste
+***
+
+Neste post estou ignorando coisas que não devem ser ignoradas, pois meu objetivo é mostrar o *pipeline*!
+
+Sendo assim, vou então selecionar meu melhor modelo e os melhores hiperparâmetros, para fazer o ajuste final de meus dados.
+
+Vou repetir o último passo, mas armazenando os resultados em uma variável:
+
+```{r}
+best_results <- 
+   grid_output %>% 
+   extract_workflow_set_result("receita3_rf_spec") %>% 
+   select_best(metric = "roc_auc")
+```
+
+Uso ela para fazer o ajuste na partição de treino inteira (lembrando que até agora ajustei os dados nas replicatas). A função `last_fit` além de fazer isso, já aplica o modelo na partição de teste:
+
+```{r}
+boosting_test_results <- 
+   grid_output %>% 
+   extract_workflow("receita3_rf_spec") %>% 
+   finalize_workflow(best_results) %>% 
+   last_fit(split = df_split)
+```
+
+Com isso, posso ver como o modelo final performa na partição de teste:
+
+```{r}
+collect_metrics(boosting_test_results)
+```
+
+E, caso eu queira seguir com esse modelo, posso ajustá-lo à partição de teste para utilizá-lo em minhas previsões:
+
+```{r}
+modelo <- 
+grid_output %>% 
+   extract_workflow("receita3_rf_spec") %>% 
+   finalize_workflow(best_results) %>% 
+  fit(df_test)
+```
+
+# Considerações finais
+***
+
+Existe, muito, mas muito mais que pode/poderia ser feito nesse *pipeline*. Ainda daria para verificar como as demais métricas de performance funcionam, extrair a matriz de confusão de cada uma delas, usar outras formas de tunagem/avaliação de performance.
+
+Mas a ideia era dar uma pincelada no que é possível fazer com esse *framework*. Também não poderia deixar de citar o livro [Tidy Modeling with R](https://www.tmwr.org/), que explica como usar o framework e de onde tudo desse post foi extraído. Ele conta com uma leitura muito fluida, simples e com ótimos exemplos reprodutíveis!
+
+
+
+
+
+
