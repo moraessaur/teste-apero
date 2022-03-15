@@ -1,7 +1,7 @@
 ---
 title: "Testando múltiplos modelos supervisionados & tunados!"
 excerpt: |
-  Executando e implementando uma busca em grid para diversos modelos e hiperparâmetros diferentes, usando o framework do tidymodels.
+  Comparando três modelos supervisionados de classificação usando uma busca em grid para tunar hiperparâmetros, também testando dados pré-processados de maneira distinta e com diferentes fórmulas. Tudo isso de maneira automatizada usando o framework do `tidymodels`!
 author:
   - name: Lucas Moraes.
   - url: https://lucasmoraes.org
@@ -17,22 +17,19 @@ output:
 
 Neste post, vou usar novamente o `{tidymodels}`, mas com a intenção de explorar algumas funcionalidades ao invés de implementar e interpretar os modelos em si.
 
-Especificamente, vou montar um *pipeline* que permite analisar a performance de modelos com fórmulas, etapas de pré-processamento e diferentes hiperparâmetros, de maneira simples, paralela e combinatória.
+Vou montar um fluxo de trabalho, onde comparo a performance de três modelos supervisionados de classificação (regressão logística, random forest e XGBoost), tunando diferentes hiperparâmetros em cada usando uma busca em grid. Além disso, também vou comparar como diferentes combinações de preditores e etapas de pré-processamento podem influenciar na performance dos mesmos.
 
-# Os dados e meu objetivo
-***
+Meu objetivo aqui não é realizar um projeto de modelagem do início ao fim. Não irei realizar uma análise exploratória dos dados, nem interpretar os resultados dos modelos. Quero apenas mostrar como a performance de diferentes modelos pode ser analisada usando o framework do `{tidymodels}`, aumentando a escala de projetos e análises em potencial. 
 
-Para esta análise irei usar dados referentes à atributos de *Pokemons*. Não se deixe enganar, este dataset é uma ótima ferramenta de testes, pois possui variáveis de todos os tipos, categorias e distribuições.
+Para esta análise irei usar dados referentes aos atributos de *Pokemons*. **Não se deixe enganar**, este dataset é uma ótima ferramenta de testes, pois possui variáveis de todos os tipos, categorias e distribuições.
 
-Existe um tipo especial e raro de *pokemon*, chamado **lendário**. Esta será minha variável de resposta, sendo ela binária.
+Existe um tipo especial e raro de *pokemon*, chamado ***lendário***. Esta será minha variável de resposta, sendo ela binária.
 
-O meu objetivo aqui será testar três diferentes modelos (regressão logística, random forest e XGBoost), com diferentes variáveis explicativas e tratamento dos dados, e diferentes valores para os hiperparâmetros de cada.
+Meus dados crus consistem no dataset `pokemon.csv`. Este possui uma quantidade enorme de informações, mas vou selecionar apenas algumas, para simplificar o processo.
 
-Meus dados crus, consistem no dataset `pokemon.csv`. Este possui uma quantidade enorme de informações, mas vou selecionar apenas algumas, para simplificar o processo.
+Novamente, minha intenção aqui é mostrar como este tipo de *pipeline* pode auxiliar no processo de escolha do modelo a utilizar para um problema. O `{tidymodels}` tem se mostrado uma ferramenta muito poderosa nesse sentido, permitindo executar essas análises de maneira intuitiva e com sintaxe simples.
 
-Novamente, minha intenção aqui é mostrar como este tipo de *pipeline* pode auxiliar no processo de escolha de qual modelo utilizar para um problema. O `{tidymodels}` tem se mostrado uma ferramenta muito poderosa nesse sentido, permitindo executar essas análises de maneira intuitiva e com sintaxe simples.
-
-# Preparando os dados e o ambiente
+# Lendo os dados
 ***
 
 Primeiramente vou ler a tabela que encontra-se [nesta pasta do dropbox](https://www.dropbox.com/s/loim4redam6feoy/pokemon.csv?dl=0) e registrar os processadores para agilizar a velocidade das análises:
@@ -89,6 +86,7 @@ df_model %>% glimpse()
 ## $ defense      <dbl> 49, 63, 123, 43, 58, 78, 65, 80, 120, 35, 55, 50, 30, 50,~
 ## $ type1        <fct> grass, grass, grass, fire, fire, fire, water, water, wate~
 ```
+
 # Particionando a amostra e criando receitas
 ***
 
@@ -213,7 +211,7 @@ grid_output <-
 ```
 
 ```
-## v 1 of 9 tuning:     receita1_xgb_spec (1m 13.2s)
+## v 1 of 9 tuning:     receita1_xgb_spec (1m 23.7s)
 ```
 
 ```
@@ -225,7 +223,7 @@ grid_output <-
 ```
 
 ```
-## v 2 of 9 tuning:     receita1_rf_spec (54.7s)
+## v 2 of 9 tuning:     receita1_rf_spec (55s)
 ```
 
 ```
@@ -233,7 +231,7 @@ grid_output <-
 ```
 
 ```
-## v 3 of 9 tuning:     receita1_log_reg (2.7s)
+## v 3 of 9 tuning:     receita1_log_reg (2.5s)
 ```
 
 ```
@@ -241,7 +239,7 @@ grid_output <-
 ```
 
 ```
-## v 4 of 9 tuning:     receita2_xgb_spec (1m 12s)
+## v 4 of 9 tuning:     receita2_xgb_spec (1m 15.9s)
 ```
 
 ```
@@ -253,7 +251,7 @@ grid_output <-
 ```
 
 ```
-## v 5 of 9 tuning:     receita2_rf_spec (53.3s)
+## v 5 of 9 tuning:     receita2_rf_spec (57.8s)
 ```
 
 ```
@@ -261,7 +259,7 @@ grid_output <-
 ```
 
 ```
-## v 6 of 9 tuning:     receita2_log_reg (2.6s)
+## v 6 of 9 tuning:     receita2_log_reg (2.9s)
 ```
 
 ```
@@ -269,7 +267,7 @@ grid_output <-
 ```
 
 ```
-## v 7 of 9 tuning:     receita3_xgb_spec (1m 14.7s)
+## v 7 of 9 tuning:     receita3_xgb_spec (1m 20.8s)
 ```
 
 ```
@@ -281,7 +279,7 @@ grid_output <-
 ```
 
 ```
-## v 8 of 9 tuning:     receita3_rf_spec (57.6s)
+## v 8 of 9 tuning:     receita3_rf_spec (1m 0.1s)
 ```
 
 ```
@@ -289,7 +287,7 @@ grid_output <-
 ```
 
 ```
-## v 9 of 9 tuning:     receita3_log_reg (2.7s)
+## v 9 of 9 tuning:     receita3_log_reg (2.9s)
 ```
 # Explorando os resultados
 ***
@@ -443,7 +441,7 @@ collect_metrics(boosting_test_results)
 ##   .metric  .estimator .estimate .config             
 ##   <chr>    <chr>          <dbl> <chr>               
 ## 1 accuracy binary         0.876 Preprocessor1_Model1
-## 2 roc_auc  binary         0.923 Preprocessor1_Model1
+## 2 roc_auc  binary         0.922 Preprocessor1_Model1
 ```
 
 E, caso eu queira seguir com esse modelo, posso ajustá-lo à partição de teste para utilizá-lo em minhas previsões:
