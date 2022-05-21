@@ -1,6 +1,6 @@
 # Meu site pessoal
 
-Esse site foi construído usando RMarkdown e os pacotes `{blogdown}` e o tema `{Hugo Apero}` de Allison Hill.
+[Esse site](https://www.lucasmoraes.org/) foi construído usando RMarkdown e os pacotes `{blogdown}` e o tema `{Hugo Apero}` de Allison Hill.
 
 Nele, possuo diferentes pastas com diferentes arquivos de RMarkdown que geram páginas em html que são compiladas em um site.
 
