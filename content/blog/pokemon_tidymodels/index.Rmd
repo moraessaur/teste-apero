@@ -276,15 +276,6 @@ Com isso, posso ver como o modelo final performa na partição de teste:
 collect_metrics(boosting_test_results)
 ```
 
-E, caso eu queira seguir com esse modelo, posso ajustá-lo à partição de teste para utilizá-lo em minhas previsões:
-
-```{r}
-modelo <- 
-grid_output %>% 
-   extract_workflow("receita3_rf_spec") %>% 
-   finalize_workflow(best_results) %>% 
-  fit(df_test)
-```
 
 # Considerações finais
 ***

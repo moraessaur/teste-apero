@@ -78,13 +78,13 @@ df_model %>% glimpse()
 ```
 ## Rows: 801
 ## Columns: 7
-## $ is_legendary <fct> 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, ~
-## $ sp_attack    <dbl> 65, 80, 122, 60, 80, 159, 50, 65, 135, 20, 25, 90, 20, 25~
-## $ sp_defense   <dbl> 65, 80, 120, 50, 65, 115, 64, 80, 115, 20, 25, 80, 20, 25~
-## $ speed        <dbl> 45, 60, 80, 65, 80, 100, 43, 58, 78, 45, 30, 70, 50, 35, ~
-## $ attack       <dbl> 49, 62, 100, 52, 64, 104, 48, 63, 103, 30, 20, 45, 35, 25~
-## $ defense      <dbl> 49, 63, 123, 43, 58, 78, 65, 80, 120, 35, 55, 50, 30, 50,~
-## $ type1        <fct> grass, grass, grass, fire, fire, fire, water, water, wate~
+## $ is_legendary <fct> 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, …
+## $ sp_attack    <dbl> 65, 80, 122, 60, 80, 159, 50, 65, 135, 20, 25, 90, 20, 25…
+## $ sp_defense   <dbl> 65, 80, 120, 50, 65, 115, 64, 80, 115, 20, 25, 80, 20, 25…
+## $ speed        <dbl> 45, 60, 80, 65, 80, 100, 43, 58, 78, 45, 30, 70, 50, 35, …
+## $ attack       <dbl> 49, 62, 100, 52, 64, 104, 48, 63, 103, 30, 20, 45, 35, 25…
+## $ defense      <dbl> 49, 63, 123, 43, 58, 78, 65, 80, 120, 35, 55, 50, 30, 50,…
+## $ type1        <fct> grass, grass, grass, fire, fire, fire, water, water, wate…
 ```
 
 # Particionando a amostra e criando receitas
@@ -211,7 +211,7 @@ grid_output <-
 ```
 
 ```
-## v 1 of 9 tuning:     receita1_xgb_spec (1m 23.7s)
+## ✔ 1 of 9 tuning:     receita1_xgb_spec (1m 34.7s)
 ```
 
 ```
@@ -223,7 +223,7 @@ grid_output <-
 ```
 
 ```
-## v 2 of 9 tuning:     receita1_rf_spec (55s)
+## ✔ 2 of 9 tuning:     receita1_rf_spec (28s)
 ```
 
 ```
@@ -231,7 +231,7 @@ grid_output <-
 ```
 
 ```
-## v 3 of 9 tuning:     receita1_log_reg (2.5s)
+## ✔ 3 of 9 tuning:     receita1_log_reg (2.2s)
 ```
 
 ```
@@ -239,7 +239,7 @@ grid_output <-
 ```
 
 ```
-## v 4 of 9 tuning:     receita2_xgb_spec (1m 15.9s)
+## ✔ 4 of 9 tuning:     receita2_xgb_spec (1m 36.5s)
 ```
 
 ```
@@ -251,7 +251,7 @@ grid_output <-
 ```
 
 ```
-## v 5 of 9 tuning:     receita2_rf_spec (57.8s)
+## ✔ 5 of 9 tuning:     receita2_rf_spec (27.6s)
 ```
 
 ```
@@ -259,7 +259,7 @@ grid_output <-
 ```
 
 ```
-## v 6 of 9 tuning:     receita2_log_reg (2.9s)
+## ✔ 6 of 9 tuning:     receita2_log_reg (2.3s)
 ```
 
 ```
@@ -267,7 +267,13 @@ grid_output <-
 ```
 
 ```
-## v 7 of 9 tuning:     receita3_xgb_spec (1m 20.8s)
+## Warning in mclapply(argsList, FUN, mc.preschedule = preschedule, mc.set.seed
+## = set.seed, : scheduled core 2 did not deliver a result, all values of the job
+## will be affected
+```
+
+```
+## ✔ 7 of 9 tuning:     receita3_xgb_spec (1m 39.7s)
 ```
 
 ```
@@ -279,7 +285,13 @@ grid_output <-
 ```
 
 ```
-## v 8 of 9 tuning:     receita3_rf_spec (1m 0.1s)
+## Warning in mclapply(argsList, FUN, mc.preschedule = preschedule, mc.set.seed =
+## set.seed, : scheduled cores 3, 6 did not deliver results, all values of the jobs
+## will be affected
+```
+
+```
+## ✔ 8 of 9 tuning:     receita3_rf_spec (36.1s)
 ```
 
 ```
@@ -287,7 +299,7 @@ grid_output <-
 ```
 
 ```
-## v 9 of 9 tuning:     receita3_log_reg (2.9s)
+## ✔ 9 of 9 tuning:     receita3_log_reg (2.6s)
 ```
 # Explorando os resultados
 ***
@@ -330,12 +342,12 @@ grid_output %>%
 
 |wflow_id         |.metric |      mean|model       |
 |:----------------|:-------|---------:|:-----------|
-|receita3_rf_spec |roc_auc | 0.9329586|rand_forest |
-|receita3_rf_spec |roc_auc | 0.9312706|rand_forest |
-|receita3_rf_spec |roc_auc | 0.9259110|rand_forest |
-|receita3_rf_spec |roc_auc | 0.9257240|rand_forest |
-|receita3_rf_spec |roc_auc | 0.9256944|rand_forest |
-|receita3_rf_spec |roc_auc | 0.9250815|rand_forest |
+|receita3_rf_spec |roc_auc | 0.9539294|rand_forest |
+|receita3_rf_spec |roc_auc | 0.9515351|rand_forest |
+|receita3_rf_spec |roc_auc | 0.9486467|rand_forest |
+|receita3_rf_spec |roc_auc | 0.9458058|rand_forest |
+|receita3_rf_spec |roc_auc | 0.9414859|rand_forest |
+|receita3_rf_spec |roc_auc | 0.9368465|rand_forest |
 
 Nesse caso, o melhor modelo foi o `receita3_rf_spec`, que teve maior AUC média. Lembrando, este é um modelo do tipo *random forest* que leva em consideração todos os dados que selecionei da tabela, com normalização das variáveis contínuas e *downsampling* da variável de resposta.
 
@@ -356,31 +368,31 @@ grid_output %>%
 
 | mtry| min_n|.metric |.estimator |      mean|  n|   std_err|.config               |
 |----:|-----:|:-------|:----------|---------:|--:|---------:|:---------------------|
-|    1|    15|roc_auc |binary     | 0.9329586| 10| 0.0161039|Preprocessor1_Model23 |
-|    4|     5|roc_auc |binary     | 0.9312706| 10| 0.0257369|Preprocessor1_Model10 |
-|    5|     5|roc_auc |binary     | 0.9259110| 10| 0.0273312|Preprocessor1_Model02 |
-|    7|     2|roc_auc |binary     | 0.9257240| 10| 0.0289623|Preprocessor1_Model19 |
-|    3|    24|roc_auc |binary     | 0.9256944| 10| 0.0256747|Preprocessor1_Model06 |
-|    2|    14|roc_auc |binary     | 0.9250815| 10| 0.0260070|Preprocessor1_Model13 |
-|   19|     9|roc_auc |binary     | 0.9232048| 10| 0.0223629|Preprocessor1_Model11 |
-|    9|    11|roc_auc |binary     | 0.9222557| 10| 0.0271802|Preprocessor1_Model05 |
-|   10|     7|roc_auc |binary     | 0.9217801| 10| 0.0270950|Preprocessor1_Model22 |
-|   21|    12|roc_auc |binary     | 0.9215099| 10| 0.0238706|Preprocessor1_Model20 |
-|    6|    32|roc_auc |binary     | 0.9192745| 10| 0.0270269|Preprocessor1_Model18 |
-|   20|    17|roc_auc |binary     | 0.9191940| 10| 0.0236280|Preprocessor1_Model15 |
-|    7|    22|roc_auc |binary     | 0.9181813| 10| 0.0285707|Preprocessor1_Model16 |
-|   17|    19|roc_auc |binary     | 0.9177494| 10| 0.0252648|Preprocessor1_Model07 |
-|   13|    28|roc_auc |binary     | 0.9171877| 10| 0.0269533|Preprocessor1_Model04 |
-|   19|    25|roc_auc |binary     | 0.9166010| 10| 0.0250799|Preprocessor1_Model08 |
-|    8|    30|roc_auc |binary     | 0.9165371| 10| 0.0286453|Preprocessor1_Model17 |
-|   14|    16|roc_auc |binary     | 0.9163817| 10| 0.0270514|Preprocessor1_Model21 |
-|   16|    26|roc_auc |binary     | 0.9136958| 10| 0.0299527|Preprocessor1_Model03 |
-|   11|    33|roc_auc |binary     | 0.9120525| 10| 0.0285564|Preprocessor1_Model09 |
-|   15|    21|roc_auc |binary     | 0.9113587| 10| 0.0298925|Preprocessor1_Model14 |
-|   11|    38|roc_auc |binary     | 0.9100498| 10| 0.0284654|Preprocessor1_Model12 |
-|   17|    35|roc_auc |binary     | 0.9085953| 10| 0.0269584|Preprocessor1_Model25 |
-|   21|    37|roc_auc |binary     | 0.9058673| 10| 0.0255826|Preprocessor1_Model01 |
-|   12|    39|roc_auc |binary     | 0.9050773| 10| 0.0289741|Preprocessor1_Model24 |
+|    7|     2|roc_auc |binary     | 0.9539294|  7| 0.0098178|Preprocessor1_Model19 |
+|    7|    22|roc_auc |binary     | 0.9515351|  8| 0.0121038|Preprocessor1_Model16 |
+|   19|    25|roc_auc |binary     | 0.9486467|  8| 0.0138041|Preprocessor1_Model08 |
+|   19|     9|roc_auc |binary     | 0.9458058|  7| 0.0122021|Preprocessor1_Model11 |
+|   16|    26|roc_auc |binary     | 0.9414859|  7| 0.0131308|Preprocessor1_Model03 |
+|   12|    39|roc_auc |binary     | 0.9368465|  8| 0.0165164|Preprocessor1_Model24 |
+|   17|    19|roc_auc |binary     | 0.9325774|  8| 0.0302957|Preprocessor1_Model07 |
+|   20|    17|roc_auc |binary     | 0.9310903|  8| 0.0303220|Preprocessor1_Model15 |
+|   21|    12|roc_auc |binary     | 0.9291851|  8| 0.0301762|Preprocessor1_Model20 |
+|    1|    15|roc_auc |binary     | 0.9204132|  8| 0.0409642|Preprocessor1_Model23 |
+|   13|    28|roc_auc |binary     | 0.9172246|  8| 0.0401992|Preprocessor1_Model04 |
+|   11|    38|roc_auc |binary     | 0.9152635|  8| 0.0446689|Preprocessor1_Model12 |
+|    4|     5|roc_auc |binary     | 0.9116951|  7| 0.0429818|Preprocessor1_Model10 |
+|   14|    16|roc_auc |binary     | 0.9089189|  7| 0.0408479|Preprocessor1_Model21 |
+|   11|    33|roc_auc |binary     | 0.9082606|  8| 0.0401483|Preprocessor1_Model09 |
+|   17|    35|roc_auc |binary     | 0.9078784|  8| 0.0384864|Preprocessor1_Model25 |
+|    8|    30|roc_auc |binary     | 0.9078225|  8| 0.0420805|Preprocessor1_Model17 |
+|    5|     5|roc_auc |binary     | 0.9077732|  7| 0.0452007|Preprocessor1_Model02 |
+|   21|    37|roc_auc |binary     | 0.9070498|  8| 0.0368612|Preprocessor1_Model01 |
+|    9|    11|roc_auc |binary     | 0.9059694|  7| 0.0453481|Preprocessor1_Model05 |
+|    2|    14|roc_auc |binary     | 0.9013566|  7| 0.0470592|Preprocessor1_Model13 |
+|   10|     7|roc_auc |binary     | 0.9006260|  7| 0.0437577|Preprocessor1_Model22 |
+|    6|    32|roc_auc |binary     | 0.9003536|  7| 0.0495620|Preprocessor1_Model18 |
+|   15|    21|roc_auc |binary     | 0.9000487|  7| 0.0418261|Preprocessor1_Model14 |
+|    3|    24|roc_auc |binary     | 0.8996576|  7| 0.0519144|Preprocessor1_Model06 |
 
 Alternativamente poderia simplesmente selecionar o melhor conjunto de hiperparâmetros usando a função `select_best`:
 
@@ -397,7 +409,7 @@ grid_output %>%
 
 | mtry| min_n|.config               |
 |----:|-----:|:---------------------|
-|    1|    15|Preprocessor1_Model23 |
+|    7|     2|Preprocessor1_Model19 |
 
 Mas nem sempre faz sentido usar a configuração mais performática no treino, pois ela pode estar performando bem por *overfitting*!
 
@@ -437,23 +449,13 @@ collect_metrics(boosting_test_results)
 ```
 
 ```
-## # A tibble: 2 x 4
+## # A tibble: 2 × 4
 ##   .metric  .estimator .estimate .config             
 ##   <chr>    <chr>          <dbl> <chr>               
-## 1 accuracy binary         0.876 Preprocessor1_Model1
-## 2 roc_auc  binary         0.922 Preprocessor1_Model1
+## 1 accuracy binary         0.891 Preprocessor1_Model1
+## 2 roc_auc  binary         0.941 Preprocessor1_Model1
 ```
 
-E, caso eu queira seguir com esse modelo, posso ajustá-lo à partição de teste para utilizá-lo em minhas previsões:
-
-
-```r
-modelo <- 
-grid_output %>% 
-   extract_workflow("receita3_rf_spec") %>% 
-   finalize_workflow(best_results) %>% 
-  fit(df_test)
-```
 
 # Considerações finais
 ***
